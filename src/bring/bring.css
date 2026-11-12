@@ -1,0 +1,135 @@
+/* ---------- the join card (bottom right, 22% of the width; for reading from the sofa, so every text is 26 px or more at 1080p) ---------- */
+.join-card {
+  /* the inside is sized in cqw (a fraction of the card's own width), so it scales as a whole with the screen; the card's own box uses vw (cqw would look to its parent) */
+  container-type: inline-size; position: absolute; right: 3vw; bottom: 5vh; width: 22vw; box-sizing: border-box; padding: 1vw 1.1vw 1.1vw;
+  display: grid; justify-items: center; gap: 0.35vw; border-radius: 1.3vw; background: #ffffffee; color: #14405c; text-align: center;
+  box-shadow: 0 10px 40px #0005; pointer-events: none; animation: join-in 0.3s ease-out;
+}
+.join-card[hidden] { display: none; }
+@keyframes join-in { from { opacity: 0; transform: translateY(14px); } }
+.join-qr { width: 78cqw; aspect-ratio: 1; line-height: 0; border-radius: 3cqw; overflow: hidden; }
+.join-qr svg { width: 100%; height: 100%; display: block; }
+.join-scan { font-size: 7.8cqw; font-weight: 900; line-height: 1.1; color: #3f8a2f; }
+.join-host { font-size: 8cqw; font-weight: 900; line-height: 1.05; overflow-wrap: anywhere; }
+.join-page { margin-top: -1.2cqw; font-size: 6.8cqw; font-weight: 800; opacity: 0.8; }
+.join-page:empty { display: none; }
+.join-code-row { display: flex; align-items: baseline; gap: 3cqw; }
+.join-code-label { font-size: 6.2cqw; font-weight: 800; opacity: 0.8; }
+.join-code { font-size: 17cqw; font-weight: 900; letter-spacing: 0.12em; margin-right: -0.12em; line-height: 1; }
+.join-line { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5cqw 3cqw; margin: 0; padding: 0; list-style: none; }
+.join-line:empty { display: none; }
+.join-person { display: flex; align-items: center; gap: 1.6cqw; padding: 0.8cqw 3.4cqw 0.8cqw 1.8cqw; border-radius: 999px; background: #d9efd0; font-size: 6.8cqw; font-weight: 900; }
+.join-badge { font-size: 9cqw; line-height: 1; }
+@media (prefers-reduced-motion: reduce) { .join-card { animation: none; } }
+
+/* ---------- the workshop (spec §3.2-3.3): the ring dimmed, the studio stage in the middle, read from the sofa ---------- */
+/* Sized in vh (a TV is wider than tall): the stage is 60vh high at 16:10; every text is 2.6vh (28 px at 1080p) or more. */
+.ws {
+  position: absolute; inset: 0; display: grid; grid-template-rows: auto 60vh auto; justify-items: center; align-content: center;
+  gap: 2.4vh; padding: 2vh 2vw; box-sizing: border-box; background: rgba(10, 14, 20, 0.55); color: #14405c;
+  animation: ws-in 0.4s ease-out; transition: opacity 0.6s ease;
+}
+.ws.closing { opacity: 0; pointer-events: none; }
+@keyframes ws-in { from { opacity: 0; } }
+
+.ws-head { display: grid; justify-items: center; gap: 0.6vh; min-height: 7vh; align-content: end; text-align: center; }
+.ws-maker {
+  display: flex; align-items: center; gap: 1.2vh; padding: 0.8vh 3vh 0.8vh 1.6vh; border-radius: 999px; background: #ffffffee;
+  font-size: 4.2vh; font-weight: 900; line-height: 1.1; white-space: nowrap; box-shadow: 0 0.6vh 2.4vh #0005;
+}
+.ws-badge { font-size: 5.2vh; line-height: 1; }
+.ws-name { display: none; margin: 0; color: #fff; font-size: 8.4vh; font-weight: 900; line-height: 1; letter-spacing: 0.01em;
+  text-shadow: 0 0.5vh 2.4vh #000a, 0 0 0.3vh #0008; }
+.ws.revealed .ws-maker { font-size: 3vh; padding: 0.5vh 2.4vh 0.5vh 1.2vh; }
+.ws.revealed .ws-badge { font-size: 3.6vh; }
+.ws.revealed .ws-name { display: block; animation: ws-pop 0.5s cubic-bezier(0.2, 1.6, 0.4, 1); }
+@keyframes ws-pop { from { opacity: 0; transform: scale(0.6); } }
+
+.ws-stage {
+  position: relative; height: 60vh; aspect-ratio: 16 / 10; border-radius: 2.4vh; overflow: hidden;
+  background: linear-gradient(#8fc6ea, #cfe6ee 55%, #7f9a55 56%, #5d7a34) center / cover no-repeat;
+  box-shadow: 0 0 0 0.5vh #ffffffd8, 0 2vh 7vh #000b;
+}
+.ws-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.ws-bubble {
+  position: absolute; z-index: 1; top: 2.6vh; right: 2.6vh; max-width: 58%; padding: 1.4vh 2.6vh; border-radius: 2.4vh;
+  background: #fff; font-size: 3.4vh; font-weight: 800; line-height: 1.2; box-shadow: 0 0.6vh 2.4vh #0004; animation: ws-bubble 0.3s ease-out;
+}
+.ws-bubble::after { content: ''; position: absolute; left: 3vh; bottom: -1.6vh; border: 1vh solid transparent; border-top: 1.2vh solid #fff; border-bottom: 0; }
+.ws-bubble[hidden], .ws-oops[hidden], .ws-cards[hidden], .ws-caption[hidden], .ws-dots[hidden] { display: none; }
+@keyframes ws-bubble { from { opacity: 0; transform: translateY(-1vh); } }
+.ws-oops {
+  position: absolute; z-index: 1; inset: 0; display: grid; place-items: center; padding: 6vh; text-align: center; background: #14405c99;
+  color: #fff; font-size: 6vh; font-weight: 900; line-height: 1.15; text-shadow: 0 0.4vh 2vh #0009;
+}
+
+/* the drawing (or the words), pinned on the left like a page on the fridge */
+.ws-paper {
+  position: absolute; left: max(1.5vw, calc(50vw - 48vh - 29vh)); top: calc(50% - 21vh); width: 30vh; margin: 0; box-sizing: border-box;
+  padding: 1.6vh 1.6vh 1vh; border-radius: 0.6vh; background: #fffdf6; transform: rotate(-3deg); box-shadow: 0 1.2vh 4vh #0008;
+  display: grid; gap: 1vh; animation: ws-paper 0.5s ease-out both 0.15s;
+}
+.ws-paper::before {
+  content: ''; position: absolute; top: -1.2vh; left: 50%; width: 2.6vh; height: 2.6vh; margin-left: -1.3vh; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ff8a7a, #d23a2a 60%, #8c1d12); box-shadow: 0 0.4vh 0.8vh #0006;
+}
+@keyframes ws-paper { from { opacity: 0; transform: translateX(-4vh) rotate(-8deg); } }
+.ws-paper img { display: block; width: 100%; max-height: 34vh; object-fit: contain; background: #fff; border-radius: 0.4vh; }
+.ws-words { margin: 0; font-size: 2.6vh; font-weight: 800; line-height: 1.25; overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.ws-paper.words-only { padding-top: 2.4vh; }
+.ws-paper.words-only .ws-words { font-size: 3.8vh; -webkit-line-clamp: 9; }
+.ws-paper figcaption { font-size: 2.6vh; font-weight: 800; text-align: center; opacity: 0.75; }
+
+/* the caption under the stage while it is made, the cards after the reveal */
+.ws-foot { display: grid; justify-items: center; min-height: 8vh; align-content: start; }
+.ws-caption {
+  display: flex; align-items: center; gap: 2vh; padding: 1.3vh 4vh 1.3vh 2.6vh; border-radius: 999px; background: #ffffffee;
+  font-size: 4.6vh; font-weight: 900; line-height: 1.15; box-shadow: 0 0.6vh 2.4vh #0005; max-width: 80vw; white-space: nowrap;
+}
+.ws-spin { flex: none; width: 3.6vh; height: 3.6vh; border-radius: 50%; border: 0.7vh solid #5fae4a40; border-top-color: #5fae4a; box-sizing: border-box; }
+.ws-caption.working .ws-spin { animation: ws-spin 0.9s linear infinite; }
+.ws-caption:not(.working) .ws-spin { border-color: #5fae4a; background: #5fae4a; }
+@keyframes ws-spin { to { transform: rotate(360deg); } }
+.ws-dots { display: flex; gap: 0.9vh; margin-left: 0.6vh; }
+.ws-dots i { width: 1.8vh; height: 1.8vh; border-radius: 50%; background: #14405c30; }
+.ws-dots i.on { background: #5fae4a; }
+.ws-bubble.working::before { content: ''; display: inline-block; width: 2.4vh; height: 2.4vh; margin: 0 1.2vh -0.3vh 0; border-radius: 50%;
+  border: 0.5vh solid #5fae4a40; border-top-color: #5fae4a; box-sizing: border-box; animation: ws-spin 0.9s linear infinite; }
+
+.ws-cards { display: flex; gap: 1.6vh; margin: 0; padding: 0; list-style: none; max-width: 94vw; animation: ws-cards 0.45s ease-out both 0.2s; }
+@keyframes ws-cards { from { opacity: 0; transform: translateY(2vh); } }
+.ws-card {
+  display: grid; align-content: start; gap: 0.4vh; width: 30vh; padding: 1.2vh 2vh 1.4vh; box-sizing: border-box; border-radius: 1.8vh;
+  background: #fff; box-shadow: 0 0.6vh 2.4vh #0005; border-top: 0.9vh solid var(--c);
+}
+.ws-card-label { font-size: 2.6vh; font-weight: 900; color: var(--c); text-transform: uppercase; letter-spacing: 0.06em; }
+.ws-card-value { font-size: 3vh; font-weight: 800; line-height: 1.15; }
+.ws-card-eats { --c: #3f8a2f; }
+.ws-card-speed { --c: #2b7bb9; }
+.ws-card-mood { --c: #c0569a; }
+.ws-card-special { --c: #c98a12; }
+
+.ws-still, .ws-still * { animation: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ws, .ws-paper, .ws-cards, .ws-bubble, .ws.revealed .ws-name { animation: none; }
+  .ws-caption.working .ws-spin, .ws-bubble.working::before { animation: none; }
+}
+
+/* the arrival's welcome title (arrival v2): the reveal's big friendly type, fading in and out over the ring's upper third */
+.arrive-title {
+  position: absolute; left: 50%; top: 13vh; transform: translateX(-50%); z-index: 5; max-width: 86vw; pointer-events: none;
+  color: #fff; font-size: 8.4vh; font-weight: 900; line-height: 1.05; letter-spacing: 0.01em; text-align: center;
+  text-shadow: 0 0.5vh 2.4vh #000a, 0 0 0.3vh #0008; animation: arrive-title 4.7s ease both;
+}
+@keyframes arrive-title {
+  0% { opacity: 0; transform: translate(-50%, 2vh) scale(0.9); }
+  12.8% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  87.2% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -1vh) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .arrive-title { animation-name: arrive-title-fade; }
+  @keyframes arrive-title-fade { 0%, 100% { opacity: 0; } 12.8%, 87.2% { opacity: 1; } }
+}

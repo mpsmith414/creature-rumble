@@ -1,0 +1,425 @@
+{
+  "schemaVersion": 4,
+  "id": "duck",
+  "name": "Duck",
+  "seed": 15,
+  "source": {
+    "kind": "native",
+    "description": ""
+  },
+  "parts": [
+    {
+      "id": "body",
+      "parent": null,
+      "role": "torso",
+      "attach": 1,
+      "offset": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "dir": {
+        "x": 0,
+        "y": 0.04993761694389223,
+        "z": 0.9987523388778446
+      },
+      "length": 0.2,
+      "r0": 0.08,
+      "r1": 0.09,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "chest",
+      "parent": "body",
+      "role": "torso",
+      "attach": 1,
+      "offset": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "dir": {
+        "x": 0,
+        "y": 0.24253562503633297,
+        "z": 0.9701425001453319
+      },
+      "length": 0.08,
+      "r0": 0.09,
+      "r1": 0.068,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "neck",
+      "parent": "chest",
+      "role": "neck",
+      "attach": 0.8,
+      "offset": {
+        "x": 0,
+        "y": 0.03,
+        "z": 0
+      },
+      "dir": {
+        "x": 0,
+        "y": 0.9805806756909201,
+        "z": 0.19611613513818402
+      },
+      "length": 0.11,
+      "r0": 0.034,
+      "r1": 0.03,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "head"
+    },
+    {
+      "id": "head",
+      "parent": "neck",
+      "role": "head",
+      "attach": 1,
+      "offset": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "dir": {
+        "x": 0,
+        "y": 0.09950371902099893,
+        "z": 0.9950371902099893
+      },
+      "length": 0.06,
+      "r0": 0.038,
+      "r1": 0.034,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "head"
+    },
+    {
+      "id": "bill",
+      "parent": "head",
+      "role": "mouth",
+      "attach": 1,
+      "offset": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "dir": {
+        "x": 0,
+        "y": -0.24253562503633297,
+        "z": 0.9701425001453319
+      },
+      "length": 0.072,
+      "r0": 0.02,
+      "r1": 0.016,
+      "squash": 0.45,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "bill"
+    },
+    {
+      "id": "eye",
+      "parent": "head",
+      "role": "eye",
+      "attach": 0.4,
+      "offset": {
+        "x": 0.03,
+        "y": 0.012,
+        "z": 0
+      },
+      "dir": {
+        "x": 0.9407208683835974,
+        "y": 0.18814417367671948,
+        "z": 0.2822162605150792
+      },
+      "length": 0.006,
+      "r0": 0.009,
+      "r1": 0.009,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": true,
+      "region": "body"
+    },
+    {
+      "id": "wing",
+      "parent": "body",
+      "role": "wing",
+      "attach": 0.65,
+      "offset": {
+        "x": 0.065,
+        "y": 0.04,
+        "z": 0
+      },
+      "dir": {
+        "x": 0.9245003270420487,
+        "y": 0.09245003270420488,
+        "z": -0.3698001308168195
+      },
+      "length": 0.14,
+      "r0": 0.05,
+      "r1": 0.04,
+      "squash": 0.15,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": true,
+      "region": "wing"
+    },
+    {
+      "id": "wingtip",
+      "parent": "wing",
+      "role": "wing",
+      "attach": 1,
+      "offset": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "dir": {
+        "x": 0.8574929257125443,
+        "y": 0,
+        "z": -0.5144957554275266
+      },
+      "length": 0.16,
+      "r0": 0.04,
+      "r1": 0.015,
+      "squash": 0.12,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "wing"
+    },
+    {
+      "id": "thigh",
+      "parent": "body",
+      "role": "leg",
+      "attach": 0.45,
+      "offset": {
+        "x": 0.04,
+        "y": -0.06,
+        "z": 0
+      },
+      "dir": {
+        "x": 0,
+        "y": -0.9950371902099893,
+        "z": 0.09950371902099893
+      },
+      "length": 0.045,
+      "r0": 0.014,
+      "r1": 0.01,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": true,
+      "region": "feet"
+    },
+    {
+      "id": "shin",
+      "parent": "thigh",
+      "role": "leg",
+      "attach": 1,
+      "offset": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "dir": {
+        "x": 0,
+        "y": -1,
+        "z": 0
+      },
+      "length": 0.04,
+      "r0": 0.008,
+      "r1": 0.008,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "feet"
+    },
+    {
+      "id": "foot",
+      "parent": "shin",
+      "role": "foot",
+      "attach": 1,
+      "offset": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "dir": {
+        "x": 0,
+        "y": -0.09950371902099893,
+        "z": 0.9950371902099893
+      },
+      "length": 0.04,
+      "r0": 0.01,
+      "r1": 0.013,
+      "squash": 0.4,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "feet"
+    },
+    {
+      "id": "tail",
+      "parent": "body",
+      "role": "tail",
+      "attach": 0,
+      "offset": {
+        "x": 0,
+        "y": 0.04,
+        "z": 0
+      },
+      "dir": {
+        "x": 0,
+        "y": 0.37139067635410367,
+        "z": -0.9284766908852592
+      },
+      "length": 0.06,
+      "r0": 0.04,
+      "r1": 0.015,
+      "squash": 0.3,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    }
+  ],
+  "skin": {
+    "regions": [
+      {
+        "id": "body",
+        "covering": "feathers",
+        "color": "#8c8070",
+        "belly": "#cfc8ba",
+        "furLength": 0.02,
+        "fluff": 0,
+        "coat": "smooth",
+        "pattern": null
+      },
+      {
+        "id": "head",
+        "covering": "feathers",
+        "color": "#1d5a3a",
+        "belly": null,
+        "furLength": 0.02,
+        "fluff": 0,
+        "coat": "smooth",
+        "pattern": null
+      },
+      {
+        "id": "bill",
+        "covering": "skin",
+        "color": "#d8b02a",
+        "belly": null,
+        "furLength": 0,
+        "fluff": 0,
+        "coat": null,
+        "pattern": null
+      },
+      {
+        "id": "wing",
+        "covering": "feathers",
+        "color": "#6e6458",
+        "belly": "#b9b0a2",
+        "furLength": 0.02,
+        "fluff": 0,
+        "coat": "smooth",
+        "pattern": null
+      },
+      {
+        "id": "feet",
+        "covering": "skin",
+        "color": "#e07a20",
+        "belly": null,
+        "furLength": 0,
+        "fluff": 0,
+        "coat": null,
+        "pattern": null
+      }
+    ],
+    "eyes": {
+      "color": "#1a120c",
+      "pupil": "round",
+      "size": 1
+    }
+  },
+  "build": {
+    "muscle": 0.4,
+    "feet": "webbed"
+  },
+  "face": {
+    "nose": "bill",
+    "noseColor": null,
+    "lids": true,
+    "earInner": null,
+    "brow": 0.2
+  },
+  "motion": {
+    "gait": "waddle",
+    "bounce": 0.4,
+    "sway": 0.5,
+    "stance": "normal"
+  },
+  "life": {
+    "sizeM": 0.55,
+    "massKg": 1.2,
+    "topSpeed": 3,
+    "stamina": 0.7,
+    "lifespanDays": 2500,
+    "maturityDays": 300,
+    "litterMin": 6,
+    "litterMax": 12,
+    "juvenileHead": 1.4,
+    "juvenileFluff": 0.9
+  },
+  "mind": {
+    "plants": [
+      "water plants",
+      "seeds"
+    ],
+    "preyMin": 0.005,
+    "preyMax": 0.05,
+    "scavenger": false,
+    "boldness": 0.45,
+    "jumpiness": 0.5,
+    "social": "flock",
+    "activity": "day",
+    "habitat": [
+      "ground",
+      "water",
+      "air"
+    ],
+    "senses": {
+      "fov": 330,
+      "acuity": 0.6,
+      "night": 0.3,
+      "smell": 0.3,
+      "hearing": 0.6,
+      "colour": "vivid"
+    }
+  },
+  "inheritance": [
+    {
+      "path": "life.sizeM",
+      "spread": 0.06
+    },
+    {
+      "path": "life.topSpeed",
+      "spread": 0.05
+    }
+  ],
+  "fight": null
+}

@@ -1,0 +1,67 @@
+/* ---------- the show over the ring: banners, comic pops, the "coming soon" capsule (all over the canvas, never clicked) ---------- */
+/* Read from the sofa: sized in vh (a TV is wider than tall); the smallest text is 2.6vh (28 px at 1080p). */
+@import url('https://fonts.googleapis.com/css2?family=Lilita+One&display=swap');
+
+.show-banner, .show-pops, .show-pop, .show-capsule { pointer-events: none; }
+
+/* ---- the banner: a fat cartoon title springing in near the top ---- */
+.show-banner {
+  position: fixed; top: 13vh; left: 50%; width: max-content; max-width: 86vw; text-align: center;
+  transform: translate(-50%, -2vh) scale(0.6); opacity: 0; transition: transform 0.35s cubic-bezier(0.2, 1.6, 0.4, 1), opacity 0.25s ease;
+  font-family: 'Lilita One', 'Nunito', system-ui, sans-serif; letter-spacing: 0.02em; z-index: 20;
+}
+.show-banner.on { opacity: 1; transform: translate(-50%, 0) scale(1); }
+.show-banner-title {
+  font-size: 8.5vh; line-height: 1.05; color: #ffe14d; overflow-wrap: anywhere;
+  -webkit-text-stroke: 0.35vh #2b1460; paint-order: stroke fill; text-shadow: 0 0.7vh 0 #2b1460;
+}
+.show-banner-sub {
+  margin: 1.2vh auto 0; max-width: 70vw; font-size: 3.6vh; line-height: 1.2; color: #fff;
+  -webkit-text-stroke: 0.25vh #2b1460; paint-order: stroke fill; text-shadow: 0 0.45vh 0 #2b1460;
+}
+.show-banner-sub[hidden] { display: none; }
+
+/* ---- comic pops: burst out, overshoot, float up and fade ---- */
+.show-pops { position: fixed; inset: 0; overflow: hidden; z-index: 15; }
+.show-pop {
+  position: absolute; white-space: nowrap; font: 5.5vh 'Lilita One', 'Nunito', system-ui, sans-serif;
+  -webkit-text-stroke: 0.28vh #1a1030; paint-order: stroke fill; text-shadow: 0 0.45vh 0 #1a1030;
+  transform: translate(-50%, -50%) rotate(var(--r)) scale(calc(var(--s) * 0.3)); opacity: 0; will-change: transform, opacity;
+}
+.show-pop[hidden] { display: none; }
+.show-pop.go { animation: show-pop 0.9s ease-out forwards; }
+@keyframes show-pop {
+  0% { transform: translate(-50%, -50%) rotate(var(--r)) scale(calc(var(--s) * 0.3)); opacity: 1; }
+  20% { transform: translate(-50%, -70%) rotate(var(--r)) scale(calc(var(--s) * 1.25)); opacity: 1; }
+  35% { transform: translate(-50%, -75%) rotate(var(--r)) scale(var(--s)); opacity: 1; }
+  100% { transform: translate(-50%, -140%) rotate(var(--r)) scale(var(--s)); opacity: 0; }
+}
+
+/* ---- the "coming soon" capsule by the ramp ---- */
+.show-capsule {
+  position: fixed; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 1vh;
+  padding: 0.8vh 2.2vh 0.8vh 1vh; border-radius: 999px; background: #ffffffe6; color: #2b1460;
+  box-shadow: 0 0.6vh 2.4vh #2b146055; font-family: 'Nunito', system-ui, sans-serif; z-index: 10;
+  animation: show-capsule-in 0.4s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+.show-capsule[hidden] { display: none; }
+@keyframes show-capsule-in { from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } }
+.show-capsule-badge { font-size: 4.6vh; line-height: 1; }
+.show-capsule-words { display: grid; line-height: 1.05; }
+.show-capsule-soon { font: 3vh 'Lilita One', 'Nunito', system-ui, sans-serif; letter-spacing: 0.05em; color: #ff4f8b; }
+.show-capsule-who { font-size: 2.6vh; font-weight: 900; }
+.show-capsule-shape {
+  width: 4.4vh; height: 5vh; border-radius: 50% 50% 42% 42% / 60% 60% 40% 40%; background: #2b1460; color: #ffe14d;
+  display: grid; place-items: center; font: 3vh 'Lilita One', 'Nunito', system-ui, sans-serif;
+  animation: show-capsule-bounce 0.7s ease-in-out infinite alternate; transform-origin: 50% 100%;
+}
+.show-capsule-shape[hidden] { display: none; }
+@keyframes show-capsule-bounce {
+  from { transform: translateY(0) scale(1.08, 0.9); }
+  to { transform: translateY(-1.2vh) scale(0.95, 1.06); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .show-banner { transition: opacity 0.2s ease; }
+  .show-capsule, .show-capsule-shape { animation: none; }
+}

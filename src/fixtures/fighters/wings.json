@@ -1,0 +1,291 @@
+{
+  "schemaVersion": 4,
+  "id": "wings",
+  "name": "Captain Flap",
+  "seed": 105,
+  "source": {
+    "kind": "native",
+    "description": ""
+  },
+  "parts": [
+    {
+      "id": "torso",
+      "parent": null,
+      "role": "torso",
+      "attach": 1,
+      "offset": { "x": 0, "y": 0, "z": 0 },
+      "dir": { "x": 0, "y": 0.9992009587217893, "z": 0.039968038348871575 },
+      "length": 0.24,
+      "r0": 0.13,
+      "r1": 0.12,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "head",
+      "parent": "torso",
+      "role": "head",
+      "attach": 1,
+      "offset": { "x": 0, "y": 0, "z": 0 },
+      "dir": { "x": 0, "y": 0.9928768384869221, "z": 0.11914522061843064 },
+      "length": 0.08,
+      "r0": 0.1,
+      "r1": 0.092,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "eye",
+      "parent": "head",
+      "role": "eye",
+      "attach": 0.55,
+      "offset": { "x": 0.036, "y": 0.012, "z": 0.072 },
+      "dir": { "x": 0.2414022747926338, "y": 0.09656090991705353, "z": 0.9656090991705352 },
+      "length": 0.01,
+      "r0": 0.03,
+      "r1": 0.03,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": true,
+      "region": "body"
+    },
+    {
+      "id": "arm",
+      "parent": "torso",
+      "role": "arm",
+      "attach": 0.85,
+      "offset": { "x": 0.102, "y": 0, "z": 0 },
+      "dir": { "x": 0.40657855630736306, "y": -0.9035079029052513, "z": 0.13552618543578768 },
+      "length": 0.16,
+      "r0": 0.03,
+      "r1": 0.0255,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": true,
+      "region": "body"
+    },
+    {
+      "id": "hand",
+      "parent": "arm",
+      "role": "hand",
+      "attach": 1,
+      "offset": { "x": 0, "y": 0, "z": 0 },
+      "dir": { "x": 0.27617238536949695, "y": -0.9205746178983233, "z": 0.27617238536949695 },
+      "length": 0.02,
+      "r0": 0.04,
+      "r1": 0.04,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "leg",
+      "parent": "torso",
+      "role": "leg",
+      "attach": 0,
+      "offset": { "x": 0.065, "y": 0, "z": 0 },
+      "dir": { "x": 0.07974522228289, "y": -0.996815278536125, "z": 0 },
+      "length": 0.08,
+      "r0": 0.035,
+      "r1": 0.0298,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": true,
+      "region": "beak"
+    },
+    {
+      "id": "shin",
+      "parent": "leg",
+      "role": "leg",
+      "attach": 1,
+      "offset": { "x": 0, "y": 0, "z": 0 },
+      "dir": { "x": 0, "y": -1, "z": 0 },
+      "length": 0.07,
+      "r0": 0.0298,
+      "r1": 0.0263,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "beak"
+    },
+    {
+      "id": "foot",
+      "parent": "shin",
+      "role": "foot",
+      "attach": 1,
+      "offset": { "x": 0, "y": 0, "z": 0 },
+      "dir": { "x": 0, "y": -0.24253562503633297, "z": 0.9701425001453319 },
+      "length": 0.08,
+      "r0": 0.028,
+      "r1": 0.0298,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "beak"
+    },
+    {
+      "id": "beak",
+      "parent": "head",
+      "role": "mouth",
+      "attach": 0.35,
+      "offset": { "x": 0, "y": -0.01, "z": 0.07 },
+      "dir": { "x": 0, "y": -0.14834045293024462, "z": 0.9889363528682975 },
+      "length": 0.08,
+      "r0": 0.04,
+      "r1": 0.01,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": true,
+      "mirror": false,
+      "region": "beak"
+    },
+    {
+      "id": "wing",
+      "parent": "torso",
+      "role": "wing",
+      "attach": 0.75,
+      "offset": { "x": 0.07, "y": 0, "z": -0.06 },
+      "dir": { "x": 0.8687444855261388, "y": 0.3909350184867625, "z": -0.30406056993414854 },
+      "length": 0.24,
+      "r0": 0.07,
+      "r1": 0.05,
+      "squash": 0.25,
+      "flatFacing": "forward",
+      "pointed": false,
+      "mirror": true,
+      "region": "wings"
+    },
+    {
+      "id": "wingtip",
+      "parent": "wing",
+      "role": "wing",
+      "attach": 1,
+      "offset": { "x": 0, "y": 0, "z": 0 },
+      "dir": { "x": 0.9759000729485331, "y": -0.09759000729485331, "z": -0.19518001458970663 },
+      "length": 0.2,
+      "r0": 0.05,
+      "r1": 0.02,
+      "squash": 0.25,
+      "flatFacing": "forward",
+      "pointed": false,
+      "mirror": false,
+      "region": "wings"
+    }
+  ],
+  "skin": {
+    "regions": [
+      {
+        "id": "body",
+        "covering": "skin",
+        "color": "#4da6ff",
+        "belly": "#d6ecff",
+        "furLength": 0,
+        "fluff": 0,
+        "coat": null,
+        "pattern": { "kind": "gradient", "color": "#1c3d9a", "scale": 0.2, "amount": 0.75, "along": false }
+      },
+      {
+        "id": "wings",
+        "covering": "skin",
+        "color": "#2f6fd6",
+        "belly": null,
+        "furLength": 0,
+        "fluff": 0,
+        "coat": null,
+        "pattern": { "kind": "spots", "color": "#ffffff", "scale": 0.06, "amount": 0.45, "along": false }
+      },
+      {
+        "id": "beak",
+        "covering": "skin",
+        "color": "#ffc93c",
+        "belly": null,
+        "furLength": 0,
+        "fluff": 0,
+        "coat": null,
+        "pattern": null
+      }
+    ],
+    "eyes": {
+      "color": "#ff8c1a",
+      "pupil": "round",
+      "size": 0.95
+    }
+  },
+  "motion": {
+    "gait": "walk",
+    "bounce": 0.5,
+    "sway": 0.4,
+    "stance": "upright"
+  },
+  "life": {
+    "sizeM": 0.6,
+    "massKg": 5,
+    "topSpeed": 3,
+    "stamina": 0.5,
+    "lifespanDays": 400,
+    "maturityDays": 60,
+    "litterMin": 1,
+    "litterMax": 3,
+    "juvenileHead": 1.3,
+    "juvenileFluff": 0.5
+  },
+  "mind": {
+    "plants": ["grass"],
+    "preyMin": 0,
+    "preyMax": 0,
+    "scavenger": false,
+    "boldness": 0.5,
+    "jumpiness": 0.5,
+    "social": "solitary",
+    "activity": "day",
+    "habitat": ["ground"],
+    "senses": {
+      "fov": 200,
+      "acuity": 0.5,
+      "night": 0.3,
+      "smell": 0.5,
+      "hearing": 0.5,
+      "colour": "normal"
+    }
+  },
+  "inheritance": [
+    {
+      "path": "life.sizeM",
+      "spread": 0.06
+    },
+    {
+      "path": "life.topSpeed",
+      "spread": 0.05
+    }
+  ],
+  "fight": {
+    "move": "divebomb",
+    "weapons": ["head"],
+    "weight": "a feathery ten pounds",
+    "intro": "From the bedroom of {maker}! With FLAPPY WINGS! It's... CAPTAIN FLAP!"
+  },
+  "build": {
+    "muscle": 0.1,
+    "feet": "plain"
+  },
+  "face": {
+    "nose": "beak",
+    "noseColor": null,
+    "lids": true,
+    "earInner": null,
+    "brow": 0.2
+  }
+}

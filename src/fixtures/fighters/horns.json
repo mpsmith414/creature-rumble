@@ -1,0 +1,249 @@
+{
+  "schemaVersion": 4,
+  "id": "horns",
+  "name": "Rammy Jammy",
+  "seed": 107,
+  "source": {
+    "kind": "native",
+    "description": ""
+  },
+  "parts": [
+    {
+      "id": "torso",
+      "parent": null,
+      "role": "torso",
+      "attach": 1,
+      "offset": { "x": 0, "y": 0, "z": 0 },
+      "dir": { "x": 0, "y": 0.9992009587217893, "z": 0.039968038348871575 },
+      "length": 0.42,
+      "r0": 0.21,
+      "r1": 0.22,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "head",
+      "parent": "torso",
+      "role": "head",
+      "attach": 1,
+      "offset": { "x": 0, "y": 0, "z": 0 },
+      "dir": { "x": 0, "y": 0.9928768384869221, "z": 0.11914522061843064 },
+      "length": 0.128,
+      "r0": 0.16,
+      "r1": 0.1472,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "eye",
+      "parent": "head",
+      "role": "eye",
+      "attach": 0.55,
+      "offset": { "x": 0.0576, "y": 0.0192, "z": 0.1152 },
+      "dir": { "x": 0.2414022747926338, "y": 0.09656090991705353, "z": 0.9656090991705352 },
+      "length": 0.01,
+      "r0": 0.048,
+      "r1": 0.048,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": true,
+      "region": "body"
+    },
+    {
+      "id": "arm",
+      "parent": "torso",
+      "role": "arm",
+      "attach": 0.85,
+      "offset": { "x": 0.187, "y": 0, "z": 0 },
+      "dir": { "x": 0.40657855630736306, "y": -0.9035079029052513, "z": 0.13552618543578768 },
+      "length": 0.26,
+      "r0": 0.05,
+      "r1": 0.0425,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": true,
+      "region": "body"
+    },
+    {
+      "id": "hand",
+      "parent": "arm",
+      "role": "hand",
+      "attach": 1,
+      "offset": { "x": 0, "y": 0, "z": 0 },
+      "dir": { "x": 0.27617238536949695, "y": -0.9205746178983233, "z": 0.27617238536949695 },
+      "length": 0.035,
+      "r0": 0.07,
+      "r1": 0.07,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "leg",
+      "parent": "torso",
+      "role": "leg",
+      "attach": 0,
+      "offset": { "x": 0.105, "y": 0, "z": 0 },
+      "dir": { "x": 0.07974522228289, "y": -0.996815278536125, "z": 0 },
+      "length": 0.15,
+      "r0": 0.075,
+      "r1": 0.0638,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": true,
+      "region": "body"
+    },
+    {
+      "id": "shin",
+      "parent": "leg",
+      "role": "leg",
+      "attach": 1,
+      "offset": { "x": 0, "y": 0, "z": 0 },
+      "dir": { "x": 0, "y": -1, "z": 0 },
+      "length": 0.13,
+      "r0": 0.0638,
+      "r1": 0.0563,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "foot",
+      "parent": "shin",
+      "role": "foot",
+      "attach": 1,
+      "offset": { "x": 0, "y": 0, "z": 0 },
+      "dir": { "x": 0, "y": -0.24253562503633297, "z": 0.9701425001453319 },
+      "length": 0.12,
+      "r0": 0.06,
+      "r1": 0.0638,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "horn",
+      "parent": "head",
+      "role": "horn",
+      "attach": 0.7,
+      "offset": { "x": 0.09, "y": 0.06, "z": 0.02 },
+      "dir": { "x": 0.4927809374119091, "y": 0.8213015623531819, "z": 0.28745554682361363 },
+      "length": 0.16,
+      "r0": 0.045,
+      "r1": 0.01,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": true,
+      "mirror": true,
+      "region": "horns"
+    }
+  ],
+  "skin": {
+    "regions": [
+      {
+        "id": "body",
+        "covering": "skin",
+        "color": "#f28c28",
+        "belly": "#ffe0b8",
+        "furLength": 0,
+        "fluff": 0,
+        "coat": null,
+        "pattern": { "kind": "patches", "color": "#7a3e12", "scale": 0.16, "amount": 0.36, "along": false }
+      },
+      {
+        "id": "horns",
+        "covering": "skin",
+        "color": "#fff4d6",
+        "belly": null,
+        "furLength": 0,
+        "fluff": 0,
+        "coat": null,
+        "pattern": { "kind": "rings", "color": "#f28c28", "scale": 0.05, "amount": 0.3, "along": false }
+      }
+    ],
+    "eyes": {
+      "color": "#2b6cff",
+      "pupil": "round",
+      "size": 0.95
+    }
+  },
+  "motion": {
+    "gait": "walk",
+    "bounce": 0.5,
+    "sway": 0.4,
+    "stance": "upright"
+  },
+  "life": {
+    "sizeM": 1.3,
+    "massKg": 70,
+    "topSpeed": 3,
+    "stamina": 0.5,
+    "lifespanDays": 400,
+    "maturityDays": 60,
+    "litterMin": 1,
+    "litterMax": 3,
+    "juvenileHead": 1.3,
+    "juvenileFluff": 0.5
+  },
+  "mind": {
+    "plants": ["grass"],
+    "preyMin": 0,
+    "preyMax": 0,
+    "scavenger": false,
+    "boldness": 0.5,
+    "jumpiness": 0.5,
+    "social": "solitary",
+    "activity": "day",
+    "habitat": ["ground"],
+    "senses": {
+      "fov": 200,
+      "acuity": 0.5,
+      "night": 0.3,
+      "smell": 0.5,
+      "hearing": 0.5,
+      "colour": "normal"
+    }
+  },
+  "inheritance": [
+    {
+      "path": "life.sizeM",
+      "spread": 0.06
+    },
+    {
+      "path": "life.topSpeed",
+      "spread": 0.05
+    }
+  ],
+  "fight": {
+    "move": "headbutt",
+    "weapons": ["head"],
+    "weight": "a stompy sixty pounds",
+    "intro": "From the bedroom of {maker}! With POINTY HORNS! It's... RAMMY JAMMY!"
+  },
+  "build": {
+    "muscle": 0.1,
+    "feet": "plain"
+  },
+  "face": {
+    "nose": "none",
+    "noseColor": null,
+    "lids": true,
+    "earInner": null,
+    "brow": 0.2
+  }
+}

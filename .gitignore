@@ -1,9 +1,17 @@
 node_modules
 dist
 .env
+.shots
+data/
 spike/
 
 # Local working docs and tool config (not published)
 docs/superpowers/
 .superpowers/
 .claude/
+
+# Photos of real drawings for the drawing test set stay on this PC (only the generated test PNGs and the README are tracked)
+src/fixtures/drawings/*
+!src/fixtures/drawings/*.png
+!src/fixtures/drawings/README.md
+.impeccable/

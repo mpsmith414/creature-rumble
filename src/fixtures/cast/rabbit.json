@@ -1,0 +1,419 @@
+{
+  "schemaVersion": 4,
+  "id": "rabbit",
+  "name": "Rabbit",
+  "seed": 12,
+  "source": {
+    "kind": "native",
+    "description": ""
+  },
+  "parts": [
+    {
+      "id": "rump",
+      "parent": null,
+      "role": "torso",
+      "attach": 1,
+      "offset": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "dir": {
+        "x": 0,
+        "y": 0.24253562503633297,
+        "z": 0.9701425001453319
+      },
+      "length": 0.12,
+      "r0": 0.075,
+      "r1": 0.08,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "chest",
+      "parent": "rump",
+      "role": "torso",
+      "attach": 1,
+      "offset": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "dir": {
+        "x": 0,
+        "y": 0.14834045293024462,
+        "z": 0.9889363528682975
+      },
+      "length": 0.1,
+      "r0": 0.08,
+      "r1": 0.058,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "head",
+      "parent": "chest",
+      "role": "head",
+      "attach": 1,
+      "offset": {
+        "x": 0,
+        "y": 0.045,
+        "z": 0
+      },
+      "dir": {
+        "x": 0,
+        "y": 0.09950371902099893,
+        "z": 0.9950371902099893
+      },
+      "length": 0.075,
+      "r0": 0.046,
+      "r1": 0.036,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "nose",
+      "parent": "head",
+      "role": "mouth",
+      "attach": 1,
+      "offset": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "dir": {
+        "x": 0,
+        "y": -0.2873478855663454,
+        "z": 0.9578262852211513
+      },
+      "length": 0.03,
+      "r0": 0.028,
+      "r1": 0.02,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "ear",
+      "parent": "head",
+      "role": "ear",
+      "attach": 0.3,
+      "offset": {
+        "x": 0.016,
+        "y": 0.03,
+        "z": 0
+      },
+      "dir": {
+        "x": 0.20331189010052345,
+        "y": 0.9241449550023794,
+        "z": -0.32345073425083276
+      },
+      "length": 0.11,
+      "r0": 0.022,
+      "r1": 0.018,
+      "squash": 0.3,
+      "flatFacing": "forward",
+      "pointed": false,
+      "mirror": true,
+      "region": "body"
+    },
+    {
+      "id": "eye",
+      "parent": "head",
+      "role": "eye",
+      "attach": 0.45,
+      "offset": {
+        "x": 0.034,
+        "y": 0.016,
+        "z": 0
+      },
+      "dir": {
+        "x": 0.9622504486493761,
+        "y": 0.19245008972987523,
+        "z": 0.19245008972987523
+      },
+      "length": 0.01,
+      "r0": 0.014,
+      "r1": 0.014,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": true,
+      "region": "body"
+    },
+    {
+      "id": "arm",
+      "parent": "chest",
+      "role": "leg",
+      "attach": 0.6,
+      "offset": {
+        "x": 0.035,
+        "y": -0.05,
+        "z": 0
+      },
+      "dir": {
+        "x": 0,
+        "y": -0.9950371902099893,
+        "z": 0.09950371902099893
+      },
+      "length": 0.06,
+      "r0": 0.022,
+      "r1": 0.016,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": true,
+      "region": "body"
+    },
+    {
+      "id": "fore",
+      "parent": "arm",
+      "role": "leg",
+      "attach": 1,
+      "offset": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "dir": {
+        "x": 0,
+        "y": -1,
+        "z": 0
+      },
+      "length": 0.05,
+      "r0": 0.014,
+      "r1": 0.012,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "paw_f",
+      "parent": "fore",
+      "role": "foot",
+      "attach": 1,
+      "offset": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "dir": {
+        "x": 0,
+        "y": -0.2873478855663454,
+        "z": 0.9578262852211513
+      },
+      "length": 0.03,
+      "r0": 0.012,
+      "r1": 0.011,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "thigh",
+      "parent": "rump",
+      "role": "leg",
+      "attach": 0.2,
+      "offset": {
+        "x": 0.05,
+        "y": -0.03,
+        "z": 0
+      },
+      "dir": {
+        "x": 0,
+        "y": -0.4472135954999579,
+        "z": 0.8944271909999159
+      },
+      "length": 0.08,
+      "r0": 0.045,
+      "r1": 0.03,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": true,
+      "region": "body"
+    },
+    {
+      "id": "shin",
+      "parent": "thigh",
+      "role": "leg",
+      "attach": 1,
+      "offset": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "dir": {
+        "x": 0,
+        "y": -0.5144957554275266,
+        "z": -0.8574929257125443
+      },
+      "length": 0.08,
+      "r0": 0.02,
+      "r1": 0.016,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "paw_h",
+      "parent": "shin",
+      "role": "foot",
+      "attach": 1,
+      "offset": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "dir": {
+        "x": 0,
+        "y": -0.14834045293024462,
+        "z": 0.9889363528682975
+      },
+      "length": 0.09,
+      "r0": 0.016,
+      "r1": 0.014,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "tail",
+      "parent": "rump",
+      "role": "tail",
+      "attach": 0,
+      "offset": {
+        "x": 0,
+        "y": 0.05,
+        "z": 0
+      },
+      "dir": {
+        "x": 0,
+        "y": 0.5144957554275266,
+        "z": -0.8574929257125443
+      },
+      "length": 0.035,
+      "r0": 0.026,
+      "r1": 0.025,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "tail"
+    }
+  ],
+  "skin": {
+    "regions": [
+      {
+        "id": "body",
+        "covering": "fur",
+        "color": "#8a7560",
+        "belly": "#dccfb9",
+        "furLength": 0.015,
+        "fluff": 0.5,
+        "coat": "soft",
+        "pattern": null
+      },
+      {
+        "id": "tail",
+        "covering": "fur",
+        "color": "#f2efe8",
+        "belly": null,
+        "furLength": 0.02,
+        "fluff": 0.8,
+        "coat": "soft",
+        "pattern": null
+      }
+    ],
+    "eyes": {
+      "color": "#1a1008",
+      "pupil": "round",
+      "size": 0.95
+    }
+  },
+  "build": {
+    "muscle": 0.4,
+    "feet": "paws"
+  },
+  "face": {
+    "nose": "pad",
+    "noseColor": "#c98b8b",
+    "lids": true,
+    "earInner": "#e8b4b0",
+    "brow": 0.2
+  },
+  "motion": {
+    "gait": "hop",
+    "bounce": 0.7,
+    "sway": 0.2,
+    "stance": "low"
+  },
+  "life": {
+    "sizeM": 0.4,
+    "massKg": 1.8,
+    "topSpeed": 11,
+    "stamina": 0.4,
+    "lifespanDays": 3000,
+    "maturityDays": 120,
+    "litterMin": 3,
+    "litterMax": 7,
+    "juvenileHead": 1.4,
+    "juvenileFluff": 0.8
+  },
+  "mind": {
+    "plants": [
+      "grass",
+      "clover",
+      "flowers"
+    ],
+    "preyMin": 0,
+    "preyMax": 0,
+    "scavenger": false,
+    "boldness": 0.15,
+    "jumpiness": 0.95,
+    "social": "herd",
+    "activity": "twilight",
+    "habitat": [
+      "ground",
+      "burrow"
+    ],
+    "senses": {
+      "fov": 340,
+      "acuity": 0.3,
+      "night": 0.6,
+      "smell": 0.8,
+      "hearing": 0.95,
+      "colour": "muted"
+    }
+  },
+  "inheritance": [
+    {
+      "path": "life.sizeM",
+      "spread": 0.06
+    },
+    {
+      "path": "life.topSpeed",
+      "spread": 0.05
+    }
+  ],
+  "fight": null
+}

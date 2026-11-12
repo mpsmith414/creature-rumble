@@ -1,0 +1,90 @@
+/* ---------- the TV app: the start screen, the TV menu (read from the sofa: sized in vh, 28 px or more at 1080p) ---------- */
+@import url('https://fonts.googleapis.com/css2?family=Lilita+One&display=swap');
+
+/* the workshop's studio renders off-screen (the fight stays full-screen, spec §2.12) */
+.rm-offstage { position: fixed; left: -10000px; top: 0; width: 256px; height: 256px; overflow: hidden; pointer-events: none; }
+.rm-offstage canvas { width: 256px; height: 256px; }
+
+.rm-fatal {
+  position: fixed; inset: auto 10vw 40vh; padding: 3vh 4vh; border-radius: 3vh; background: #fff; color: #2b1460;
+  font-size: 3.4vh; font-weight: 900; text-align: center;
+}
+
+/* ---- the start screen: "ADD A CREATURE!" over the empty ring (the join card sits bottom right) ---- */
+.rm-start {
+  position: fixed; left: 50%; top: 30vh; transform: translateX(-50%); width: max-content; max-width: 70vw; display: grid;
+  justify-items: center; gap: 1.6vh; text-align: center; pointer-events: none; z-index: 5;
+}
+.rm-start[hidden] { display: none; }
+.rm-start-title {
+  font: 11vh/1 'Lilita One', 'Nunito', system-ui, sans-serif; color: #ffe14d; letter-spacing: 0.02em;
+  -webkit-text-stroke: 0.45vh #2b1460; paint-order: stroke fill; text-shadow: 0 0.9vh 0 #2b1460;
+  animation: rm-start-bob 1.6s ease-in-out infinite alternate;
+}
+.rm-start-hint {
+  font-size: 3.6vh; font-weight: 900; color: #fff; -webkit-text-stroke: 0.22vh #2b1460; paint-order: stroke fill;
+  text-shadow: 0 0.45vh 0 #2b1460;
+}
+.rm-start-hint[hidden] { display: none; }
+.rm-start-sound { font-size: 3vh; }
+.rm-start-keys {
+  margin-top: 0.6vh; padding: 0.6vh 2.4vh; border-radius: 999px; background: #ffffffd9; color: #2b1460; font-size: 2.6vh; font-weight: 900;
+}
+@keyframes rm-start-bob { from { transform: translateY(0) rotate(-1.5deg); } to { transform: translateY(-1.4vh) rotate(1.5deg); } }
+
+/* ---- the TV menu ---- */
+.rm-menu {
+  position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 5vh 5vw; box-sizing: border-box;
+  font-size: max(28px, 3.4vh); background: radial-gradient(ellipse at center, #2b146050, #2b1460a0);
+  animation: rm-menu-in 0.2s ease-out; transition: opacity 0.25s;
+}
+.rm-menu.closing { opacity: 0; pointer-events: none; }
+@keyframes rm-menu-in { from { opacity: 0; } }
+.rm-panel {
+  display: grid; gap: 1.6vh; justify-items: center; max-width: 100%; max-height: 100%; box-sizing: border-box; overflow: auto;
+  padding: 3vh 5vh 3.4vh; border-radius: 4vh; background: linear-gradient(#fff3fbf7, #e6f6fff7); box-shadow: 0 1.2vh 4.8vh #0007; color: #2b1460;
+}
+.rm-panel[hidden] { display: none; }
+.rm-heading { margin: 0 0 0.4vh; font: 1.6em/1.1 'Lilita One', 'Nunito', system-ui, sans-serif; letter-spacing: 0.02em; color: #ff4f8b; }
+.rm-row { display: flex; align-items: center; gap: 2.4vh; }
+.rm-title { font-weight: 900; }
+.rm-items { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1.6vh; }
+.rm-btn {
+  min-height: 2.1em; min-width: 2.3em; padding: 0.3em 1em; border: 0; border-radius: 999px; background: #fff; color: #2b1460;
+  font: inherit; font-weight: 900; line-height: 1.1; white-space: nowrap; cursor: pointer; box-shadow: 0 0.35vh 1vh #2b146040;
+  transition: transform 0.1s ease, background 0.15s;
+}
+.rm-btn:hover { background: #fff8d6; }
+.rm-btn.on { background: #5fae4a; color: #fff; }
+.rm-btn.on::before { content: '✓ '; }
+.rm-btn.dim { opacity: 0.45; cursor: default; }
+.rm-btn.rm-big { padding: 0.4em 1.5em; font-size: 1.25em; background: #ffc933; }
+.rm-btn:focus { outline: none; }
+.rm-btn.focused, .rm-btn:focus-visible {
+  outline: 0.8vh solid #ff4f8b; outline-offset: 0.45vh; box-shadow: 0 0 0 1.6vh #ff4f8b40, 0 0.35vh 1vh #2b146040; transform: scale(1.06);
+}
+.rm-row-volume .rm-btn:not(:last-child) { width: 2.3em; padding: 0; font-size: 1.2em; }
+.rm-level { display: inline-flex; gap: 0.7vh; align-items: flex-end; height: 3.2em; padding: 0 0.6vh; }
+.rm-level i { width: 1.6vh; border-radius: 0.6vh; background: #2b146030; }
+.rm-level i.lit { background: #5fae4a; }
+.rm-level.off i.lit { background: #2b146055; }
+.rm-empty { margin: 1vh 0; text-align: center; font-weight: 800; max-width: 30em; }
+.rm-back { margin-top: 1vh; min-width: 7em; }
+
+/* the Fighters page: a grid of the roster, each with Send back in! */
+.rm-fighters { width: min(100%, 90vw); }
+.rm-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(13em, 1fr)); gap: 1.6vh; width: 100%; margin: 0; padding: 0.6vh; list-style: none;
+  font-size: 0.8em;
+}
+.rm-fighter {
+  display: grid; justify-items: center; gap: 0.6vh; padding: 1.4vh; border-radius: 2.4vh; background: #ffffffc0; text-align: center; min-width: 0;
+}
+.rm-thumb { width: 9vh; height: 9vh; border-radius: 1.8vh; object-fit: cover; background: #fff; }
+.rm-nothumb { display: grid; place-items: center; font-size: 5vh; }
+.rm-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 900; }
+.rm-maker { font-size: max(26px, 0.8em); font-weight: 700; color: #2b1460c0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rm-start-title, .rm-menu { animation: none; }
+}

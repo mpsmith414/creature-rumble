@@ -1,0 +1,281 @@
+{
+  "schemaVersion": 4,
+  "id": "tail",
+  "name": "Swishy",
+  "seed": 106,
+  "source": {
+    "kind": "native",
+    "description": ""
+  },
+  "parts": [
+    {
+      "id": "torso",
+      "parent": null,
+      "role": "torso",
+      "attach": 1,
+      "offset": { "x": 0, "y": 0, "z": 0 },
+      "dir": { "x": 0, "y": 0.9992009587217893, "z": 0.039968038348871575 },
+      "length": 0.36,
+      "r0": 0.17,
+      "r1": 0.14,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "head",
+      "parent": "torso",
+      "role": "head",
+      "attach": 1,
+      "offset": { "x": 0, "y": 0, "z": 0 },
+      "dir": { "x": 0, "y": 0.9928768384869221, "z": 0.11914522061843064 },
+      "length": 0.104,
+      "r0": 0.13,
+      "r1": 0.1196,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "eye",
+      "parent": "head",
+      "role": "eye",
+      "attach": 0.55,
+      "offset": { "x": 0.0468, "y": 0.0156, "z": 0.0936 },
+      "dir": { "x": 0.2414022747926338, "y": 0.09656090991705353, "z": 0.9656090991705352 },
+      "length": 0.01,
+      "r0": 0.039,
+      "r1": 0.039,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": true,
+      "region": "body"
+    },
+    {
+      "id": "arm",
+      "parent": "torso",
+      "role": "arm",
+      "attach": 0.85,
+      "offset": { "x": 0.119, "y": 0, "z": 0 },
+      "dir": { "x": 0.40657855630736306, "y": -0.9035079029052513, "z": 0.13552618543578768 },
+      "length": 0.2,
+      "r0": 0.04,
+      "r1": 0.034,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": true,
+      "region": "body"
+    },
+    {
+      "id": "hand",
+      "parent": "arm",
+      "role": "hand",
+      "attach": 1,
+      "offset": { "x": 0, "y": 0, "z": 0 },
+      "dir": { "x": 0.27617238536949695, "y": -0.9205746178983233, "z": 0.27617238536949695 },
+      "length": 0.025,
+      "r0": 0.05,
+      "r1": 0.05,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "leg",
+      "parent": "torso",
+      "role": "leg",
+      "attach": 0,
+      "offset": { "x": 0.085, "y": 0, "z": 0 },
+      "dir": { "x": 0.07974522228289, "y": -0.996815278536125, "z": 0 },
+      "length": 0.13,
+      "r0": 0.06,
+      "r1": 0.051,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": true,
+      "region": "body"
+    },
+    {
+      "id": "shin",
+      "parent": "leg",
+      "role": "leg",
+      "attach": 1,
+      "offset": { "x": 0, "y": 0, "z": 0 },
+      "dir": { "x": 0, "y": -1, "z": 0 },
+      "length": 0.11,
+      "r0": 0.051,
+      "r1": 0.045,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "foot",
+      "parent": "shin",
+      "role": "foot",
+      "attach": 1,
+      "offset": { "x": 0, "y": 0, "z": 0 },
+      "dir": { "x": 0, "y": -0.24253562503633297, "z": 0.9701425001453319 },
+      "length": 0.11,
+      "r0": 0.048,
+      "r1": 0.051,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "tail1",
+      "parent": "torso",
+      "role": "tail",
+      "attach": 0.1,
+      "offset": { "x": 0, "y": 0, "z": -0.08 },
+      "dir": { "x": 0, "y": -0.14834045293024462, "z": -0.9889363528682975 },
+      "length": 0.32,
+      "r0": 0.11,
+      "r1": 0.08,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "tail2",
+      "parent": "tail1",
+      "role": "tail",
+      "attach": 1,
+      "offset": { "x": 0, "y": 0, "z": 0 },
+      "dir": { "x": 0, "y": 0.09950371902099893, "z": -0.9950371902099893 },
+      "length": 0.3,
+      "r0": 0.08,
+      "r1": 0.055,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "body"
+    },
+    {
+      "id": "tail3",
+      "parent": "tail2",
+      "role": "tail",
+      "attach": 1,
+      "offset": { "x": 0, "y": 0, "z": 0 },
+      "dir": { "x": 0, "y": 0.41036467732879783, "z": -0.9119215051751063 },
+      "length": 0.26,
+      "r0": 0.055,
+      "r1": 0.07,
+      "squash": 1,
+      "flatFacing": "up",
+      "pointed": false,
+      "mirror": false,
+      "region": "tip"
+    }
+  ],
+  "skin": {
+    "regions": [
+      {
+        "id": "body",
+        "covering": "skin",
+        "color": "#3fbf5f",
+        "belly": "#c9f2a5",
+        "furLength": 0,
+        "fluff": 0,
+        "coat": null,
+        "pattern": { "kind": "rings", "color": "#1d6b34", "scale": 0.09, "amount": 0.4, "along": false }
+      },
+      {
+        "id": "tip",
+        "covering": "skin",
+        "color": "#ffe14d",
+        "belly": null,
+        "furLength": 0,
+        "fluff": 0,
+        "coat": null,
+        "pattern": null
+      }
+    ],
+    "eyes": {
+      "color": "#a0522d",
+      "pupil": "round",
+      "size": 0.95
+    }
+  },
+  "motion": {
+    "gait": "walk",
+    "bounce": 0.5,
+    "sway": 0.4,
+    "stance": "upright"
+  },
+  "life": {
+    "sizeM": 1.1,
+    "massKg": 40,
+    "topSpeed": 3,
+    "stamina": 0.5,
+    "lifespanDays": 400,
+    "maturityDays": 60,
+    "litterMin": 1,
+    "litterMax": 3,
+    "juvenileHead": 1.3,
+    "juvenileFluff": 0.5
+  },
+  "mind": {
+    "plants": ["grass"],
+    "preyMin": 0,
+    "preyMax": 0,
+    "scavenger": false,
+    "boldness": 0.5,
+    "jumpiness": 0.5,
+    "social": "solitary",
+    "activity": "day",
+    "habitat": ["ground"],
+    "senses": {
+      "fov": 200,
+      "acuity": 0.5,
+      "night": 0.3,
+      "smell": 0.5,
+      "hearing": 0.5,
+      "colour": "normal"
+    }
+  },
+  "inheritance": [
+    {
+      "path": "life.sizeM",
+      "spread": 0.06
+    },
+    {
+      "path": "life.topSpeed",
+      "spread": 0.05
+    }
+  ],
+  "fight": {
+    "move": "spin",
+    "weapons": ["tail3"],
+    "weight": "a swishy forty pounds",
+    "intro": "From the bedroom of {maker}! With a SPINNY TAIL! It's... SWISHY!"
+  },
+  "build": {
+    "muscle": 0.1,
+    "feet": "plain"
+  },
+  "face": {
+    "nose": "none",
+    "noseColor": null,
+    "lids": true,
+    "earInner": null,
+    "brow": 0.2
+  }
+}
