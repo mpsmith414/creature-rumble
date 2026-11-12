@@ -1,0 +1,9 @@
+node_modules
+dist
+.env
+spike/
+
+# Local working docs and tool config (not published)
+docs/superpowers/
+.superpowers/
+.claude/
