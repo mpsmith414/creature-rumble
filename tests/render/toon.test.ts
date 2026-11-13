@@ -1,6 +1,7 @@
 import { describe, expect, it, test } from 'vitest';
 import { packRegions } from '../../src/skin/patterns';
-import { createToonMaterial, TOON_BANDS, toonBand, toonGradient } from '../../src/render/toon';
+import { Mesh } from 'three/webgpu';
+import { createToonMaterial, GLOW_KEY, setGlow, TOON_BANDS, toonBand, toonGradient } from '../../src/render/toon';
 import { loadFixture } from '../fixtures/fighters';
 
 describe('toonBand', () => {
@@ -45,5 +46,25 @@ describe('createToonMaterial', () => {
     expect(m.emissiveNode).not.toBeNull(); // the rim
     expect(m.normalNode).toBeNull(); // no bump relief
     expect(m.aoNode).toBeNull(); // no cavity darkening
+  });
+});
+
+describe("a special's glow", () => {
+  it('is a level kept on the object, clamped to 0 … 1, so the material never changes', () => {
+    const r = loadFixture('fists');
+    const m = createToonMaterial(packRegions(r, r.skin.regions.map((x) => x.id)));
+    const mesh = new Mesh(undefined, m);
+    const before = m.emissiveNode;
+    const version = m.version;
+    setGlow(mesh, 0.6);
+    expect(mesh.userData[GLOW_KEY]).toBe(0.6);
+    setGlow(mesh, 3);
+    expect(mesh.userData[GLOW_KEY]).toBe(1);
+    setGlow(mesh, -1);
+    expect(mesh.userData[GLOW_KEY]).toBe(0);
+    setGlow(mesh, Number.NaN);
+    expect(mesh.userData[GLOW_KEY]).toBe(0);
+    expect(m.emissiveNode).toBe(before);
+    expect(m.version).toBe(version); // no recompile
   });
 });

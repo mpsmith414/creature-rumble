@@ -6,6 +6,8 @@ import { noiseBuffer } from './sfx';
 
 const REST = 0.25; // level of the bed with nothing happening
 const LOUD = 1.0;
+/** How loud the crowd gets as a special winds up, and in an "ooh" at a big launch. */
+const RISE = 0.8, OOH = 0.7;
 
 export interface Crowd {
   start(): void;
@@ -16,6 +18,10 @@ export interface Crowd {
   roar(): void;
   /** For a tie: a sag in volume with the crowd's pitch sliding down. */
   aww(): void;
+  /** A special winding up: the crowd rises for `seconds`, then (with no roar to take over) settles back. */
+  rise(seconds: number): void;
+  /** A fighter launched high: a quick rising "ooh", then back to the resting bed. */
+  ooh(): void;
 }
 
 export function createCrowd(ctx: AudioContext, out: AudioNode): Crowd {
@@ -85,6 +91,24 @@ export function createCrowd(ctx: AudioContext, out: AudioNode): Crowd {
       filter.frequency.setValueAtTime(900, now);
       filter.frequency.linearRampToValueAtTime(1300, now + 0.35);
       filter.frequency.linearRampToValueAtTime(900, now + 3);
+    },
+    rise(seconds) {
+      const s = Math.min(4, Math.max(0.2, seconds)), now = from();
+      level.gain.linearRampToValueAtTime(RISE, now + s);
+      level.gain.linearRampToValueAtTime(rest, now + s + 1.5);
+      filter.frequency.cancelScheduledValues(now);
+      filter.frequency.setValueAtTime(900, now);
+      filter.frequency.linearRampToValueAtTime(1150, now + s);
+      filter.frequency.linearRampToValueAtTime(900, now + s + 1.5);
+    },
+    ooh() {
+      const now = from();
+      level.gain.linearRampToValueAtTime(OOH, now + 0.3);
+      level.gain.linearRampToValueAtTime(rest, now + 2);
+      filter.frequency.cancelScheduledValues(now);
+      filter.frequency.setValueAtTime(700, now);
+      filter.frequency.exponentialRampToValueAtTime(1500, now + 0.6);
+      filter.frequency.linearRampToValueAtTime(900, now + 2);
     },
     aww() {
       const now = from();

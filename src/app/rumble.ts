@@ -13,6 +13,7 @@ import { ragdollLayout } from '../physics/layout';
 import type { Recipe } from '../recipe/schema';
 import warmUpFighter from '../fixtures/fighters/fists.json';
 import { driveBones } from '../render/drive';
+import { setGlow } from '../render/toon';
 import type { RosterItem } from '../roster/roster';
 import { h } from '../shared/dom';
 import { Input } from '../shared/input';
@@ -22,7 +23,9 @@ import { Entrance } from '../show/entrance';
 import { Finale } from '../show/finale';
 import { TA_DA } from '../show/pops';
 import { SlowMo } from '../show/slowmo';
+import { Shockwaves } from '../show/shockwave';
 import { DizzyStars } from '../show/stars';
+import { Trails } from '../show/trails';
 import type { Core } from './core';
 import { RingLoop } from './loop';
 import { menuControl } from './menu-control';
@@ -66,6 +69,7 @@ export async function startRumble(core: Core): Promise<RumbleApi> {
   const match = new Match();
   const slow = new SlowMo();
   const stars = new DizzyStars(scene, TUNE);
+  const trails = new Trails(scene), shockwaves = new Shockwaves(scene);
   const finale = new Finale(scene, { ringRadius: R });
   const director = new CameraDirector({ ringRadius: R, bumper: TUNE.bumper, fov: camera.fov });
   director.cut();
@@ -83,6 +87,7 @@ export async function startRumble(core: Core): Promise<RumbleApi> {
   };
   const show = new RumbleShow<FighterObject>({
     world, tune: TUNE, rng: Math.random, match, loop, slow, camera, entrance, finale, stars, pops, banner, announcer, sfx, crowd, roster: showRoster,
+    director, trails, shockwaves,
     objects: {
       make(c, layout) {
         const o = createFighterObject(c.body, c.recipe, layout);
@@ -90,6 +95,7 @@ export async function startRumble(core: Core): Promise<RumbleApi> {
         return o;
       },
       drive: (o, f, dt) => driveBones(o, f.ragdoll, dt),
+      glow: (o, level) => setGlow(o.mesh, level),
       dispose(o) {
         scene.remove(o.root);
         o.dispose();
@@ -239,7 +245,9 @@ export async function startRumble(core: Core): Promise<RumbleApi> {
   const hooks = new Set<() => void>();
   const champAt = new Vector3(), ramp = arena.entry.dir.clone().multiplyScalar(R + 2.5).setY(0.6);
   let clock = 0, last = performance.now(), loggedAt = -Infinity;
+  shockwaves.spawn(champAt, 1); // shown while the scene compiles, so the first special's shockwave does not hitch
   await renderer.compileAsync(scene, camera);
+  shockwaves.clear();
   void warmFighterShaders(core);
   renderer.setAnimationLoop((now: number) => {
     const dt = Math.min(MAX_FRAME, Math.max(0, (now - last) / 1000));

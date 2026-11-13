@@ -1,21 +1,29 @@
 import { describe, expect, it } from 'vitest';
 import { fillSlots, LINE_MAX, LINES } from '../../src/announcer/lines';
 
-const ALL_SLOTS = { name: 'Sir Bounces', other: 'Captain Wobble', names: 'Sir Bounces, Captain Wobble and Pip', maker: 'Pickle', weight: 'two tons' };
+const ALL_SLOTS = { name: 'Sir Bounces', other: 'Captain Wobble', names: 'Sir Bounces, Captain Wobble and Pip', special: 'ROCKET HEADBUTT', maker: 'Pickle', weight: 'two tons' };
 
 describe('LINES', () => {
   it('every bank has enough variants and fills its slots', () => {
     for (const [beat, bank] of Object.entries(LINES)) {
-      expect(bank.length, beat).toBeGreaterThanOrEqual(beat === 'hit' || beat === 'bigHit' ? 30 : 8);
+      expect(bank.length, beat).toBeGreaterThanOrEqual(beat === 'hit' || beat === 'bigHit' ? 30 : beat === 'special' ? 16 : 8);
       for (const l of bank) expect(fillSlots(l, ALL_SLOTS), l).not.toMatch(/[{}]/);
     }
   });
 
   it('every line is short, even with long names, and none repeats', () => {
-    const long = { name: 'Sir Bouncealot', other: 'Captain Wobble', names: 'Sir Bounces, Captain Wobble and Pip' };
+    const long = { name: 'Sir Bouncealot', other: 'Captain Wobble', names: 'Sir Bounces, Captain Wobble and Pip', special: 'HELICOPTER KICK' };
     for (const [beat, bank] of Object.entries(LINES)) {
       expect(new Set(bank).size, beat).toBe(bank.length);
       for (const l of bank) expect(fillSlots(l, long).length, l).toBeLessThanOrEqual(LINE_MAX);
+    }
+  });
+
+  it('every special line names the special, shouted, and fills it with a stand-in when none is given', () => {
+    for (const l of LINES.special) {
+      expect(l, l).toContain('{special}');
+      expect(fillSlots(l, { name: 'Pip', special: 'Mega Punch' })).toContain('MEGA PUNCH');
+      expect(fillSlots(l, { name: 'Pip' })).toContain('SUPER MOVE');
     }
   });
 

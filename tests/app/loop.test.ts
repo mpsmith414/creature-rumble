@@ -4,7 +4,8 @@ import { beforeAll, describe, expect, test, vi } from 'vitest';
 import { MAX_RAGDOLLS, RingLoop } from '../../src/app/loop';
 import { addArenaColliders } from '../../src/arena/colliders';
 import { buildSkeleton } from '../../src/builder/skeleton';
-import { Fighter } from '../../src/fight/fighter';
+import { Fighter, type Hit } from '../../src/fight/fighter';
+import type { SpecialCue } from '../../src/fight/special';
 import { planFor } from '../../src/fight/moves';
 import { TUNE } from '../../src/fight/tune';
 import { Match } from '../../src/match/match';
@@ -202,6 +203,56 @@ describe('RingLoop', () => {
     expect(step).toHaveBeenCalledTimes(60);
     expect(error).toHaveBeenCalledTimes(1);
     error.mockRestore();
+  });
+
+  test('special cues come up through step, charge to end, named by the fighter', () => {
+    const world = ring();
+    const match = fightingMatch(['a', 'b']);
+    const loop = new RingLoop({ world, match, slowmo: new SlowMo(), tune: TUNE });
+    const a = fighter(world, 'a', 'fists', new Vector3(-0.8, 0, 0));
+    const b = fighter(world, 'b', 'blob', new Vector3(0.8, 0, 0));
+    a.ragdoll.pose(new Vector3(-0.8, 0, 0), Math.PI / 2);
+    b.ragdoll.pose(new Vector3(0.8, 0, 0), -Math.PI / 2);
+    a.state = b.state = 'fighting';
+    loop.add(a);
+    loop.add(b);
+    frames(loop, 0.3);
+    a.special.meter = 1;
+    const cues: SpecialCue[] = [];
+    const specialHits: Hit[] = [];
+    let t = 0.3;
+    for (let i = 0; i < 6 * 60 && !cues.some((c) => c.phase === 'end'); i++) {
+      t += DT;
+      const r = loop.step(DT, t);
+      cues.push(...r.specials);
+      specialHits.push(...r.hits.filter((h) => h.special));
+      if (a.special.active) expect(a.special.meter).toBe(0);
+    }
+    expect(cues.map((c) => c.phase)).toEqual(['charge', 'release', 'impact', 'end']);
+    for (const c of cues) {
+      expect(c.id).toBe('a');
+      expect(c.special).toBe('megaPunch');
+    }
+    expect(specialHits.length).toBeGreaterThan(0);
+    expect(a.special.active).toBeNull();
+  });
+
+  test('a fighter let go mid-special still sends its end', () => {
+    const world = ring();
+    const match = fightingMatch(['a', 'b']);
+    const loop = new RingLoop({ world, match, slowmo: new SlowMo(), tune: TUNE });
+    const a = fighter(world, 'a', 'horns', new Vector3(-2, 0, 0));
+    const b = fighter(world, 'b', 'blob', new Vector3(2, 0, 0));
+    a.state = b.state = 'fighting';
+    loop.add(a);
+    loop.add(b);
+    a.special.meter = 1;
+    const first = loop.step(DT * 2, DT * 2);
+    expect(first.specials.map((c) => c.phase)).toEqual(['charge']);
+    loop.remove('a');
+    const next = loop.step(DT, DT * 3);
+    expect(next.specials.map((c) => c.phase)).toEqual(['end']);
+    expect(next.specials[0].id).toBe('a');
   });
 
   test('hits are counted per fighter for the crowning', () => {

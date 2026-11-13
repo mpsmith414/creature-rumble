@@ -1,8 +1,10 @@
 // Dev only (`/?dev`, left out of the build): the spike's panel over the real TV. Add a fixture fighter by kind (keys
-// 1–7, with its entrance), quick-fill 4 without entrances (F), crown (C), Again! (A), reset (X), tune sliders bound to
-// TUNE, the freeze toggle; H hides the panel. `&shot=entrance|fight|crown` plays a short script and saves that moment
-// as .shots/<name>.png (the dev server's /__shot): the solo show-off at the top of its jump, a busy fight, the champion.
+// 1–7, with its entrance), quick-fill 4 without entrances (F), crown (C), Again! (A), reset (X), fill the next fighter's
+// special meter (S), tune sliders bound to TUNE, the freeze toggle; H hides the panel. `&shot=entrance|fight|crown|special`
+// plays a short script and saves that moment as .shots/<name>.png (the dev server's /__shot): the solo show-off at the
+// top of its jump, a busy fight, the champion, a special's impact.
 import type { BodyData } from '../builder/build';
+import type { Fighter } from '../fight/fighter';
 import { TUNE } from '../fight/tune';
 import type { Recipe } from '../recipe/schema';
 import { entranceAt } from '../show/timeline';
@@ -27,6 +29,25 @@ const SLIDERS: Slider[] = [
 ];
 /** `&shot=entrance` saves the frame where the show-off jump is this near its top (0 … 1). */
 const SHOT_AT = 0.985;
+/**
+ * `&shot=special` fills a meter again this often (s) until a special lands, gives up after this long (s), and saves the
+ * frame this long (ms) after the impact.
+ */
+const SPECIAL_RETRY_S = 5, SPECIAL_GIVE_UP_S = 40, SPECIAL_SHOT_MS = 150;
+
+/**
+ * Dev: the next fighter in the ring (after `last`, round the ring) gets a full special meter, so it unleashes its
+ * special as soon as it can (standing, not stunned). The fight reads the meter; this is the only place the dev panel
+ * writes it. Returns who, or null when nobody is fighting.
+ */
+export function fillSpecial(fighters: readonly Fighter[], last: string | null): Fighter | null {
+  const ring = fighters.filter((f) => f.state === 'fighting');
+  if (!ring.length) return null;
+  const i = ring.findIndex((f) => f.id === last);
+  const f = ring[(i + 1) % ring.length];
+  f.special.meter = 1;
+  return f;
+}
 
 const CSS = `
 .rm-dev { position: fixed; left: 12px; bottom: 12px; width: 310px; z-index: 40; background: #1a1030e6; color: #fff; padding: 12px;
@@ -58,6 +79,12 @@ export function devPanel(ui: HTMLElement, canvas: HTMLCanvasElement, rumble: Rum
     const picks = [...KINDS.keys()].sort(() => Math.random() - 0.5).slice(0, 4);
     rumble.quickFill(await Promise.all(picks.map(cardFor)));
   };
+  let charged: string | null = null;
+  const special = () => {
+    const f = fillSpecial(rumble.loop.all(), charged);
+    charged = f?.id ?? null;
+    if (f) console.info(`dev: ${rumble.show.card(f.id)?.name ?? f.id} has a full special meter`);
+  };
   const fail = (e: unknown) => console.error('dev panel:', e);
 
   // ---------- the panel ----------
@@ -88,6 +115,7 @@ export function devPanel(ui: HTMLElement, canvas: HTMLCanvasElement, rumble: Rum
   button(acts, '👑 Crown (C)', () => rumble.crown(), 'gold');
   button(acts, 'Again! (A)', () => rumble.again(), 'gold');
   button(acts, 'Reset (X)', () => rumble.reset(), 'alt');
+  button(acts, '⚡ Special (S)', special, 'gold');
   for (const s of SLIDERS) {
     const row = el('label', panel, s.label);
     const input = el('input', row);
@@ -109,7 +137,7 @@ export function devPanel(ui: HTMLElement, canvas: HTMLCanvasElement, rumble: Rum
   freeze.tabIndex = -1;
   el('span', freezeRow, 'Freeze the fight during entrances');
   freeze.onchange = () => { rumble.loop.freeze = freeze.checked; };
-  el('div', panel, 'Keys 1–7 add a fighter of that kind (with its entrance). H hides this panel. Enter opens the TV menu.', 'hint');
+  el('div', panel, 'Keys 1–7 add a fighter of that kind (with its entrance). S fills the next fighter’s special meter. H hides this panel. Enter opens the TV menu.', 'hint');
   ui.append(panel);
 
   window.addEventListener('keydown', (e) => {
@@ -120,6 +148,7 @@ export function devPanel(ui: HTMLElement, canvas: HTMLCanvasElement, rumble: Rum
     else if (k === 'c') rumble.crown();
     else if (k === 'a') rumble.again();
     else if (k === 'x') rumble.reset();
+    else if (k === 's') special();
     else if (k === 'h') panel.hidden = !panel.hidden;
   });
   rumble.onFrame(() => {
@@ -131,13 +160,13 @@ export function devPanel(ui: HTMLElement, canvas: HTMLCanvasElement, rumble: Rum
 
   if (o.shot) {
     panel.hidden = true;
-    void script(o.shot, rumble, ui, canvas, { add, quickFill }).catch(fail);
+    void script(o.shot, rumble, ui, canvas, { add, quickFill, special }).catch(fail);
   }
 }
 
 /** The shot scripts: set the moment up, then save the frame right after it is drawn. */
 async function script(name: string, rumble: RumbleApi, ui: HTMLElement, canvas: HTMLCanvasElement,
-  a: { add(i: number): Promise<void>; quickFill(): Promise<void> }): Promise<void> {
+  a: { add(i: number): Promise<void>; quickFill(): Promise<void>; special(): void }): Promise<void> {
   const wait = (s: number) => new Promise((go) => setTimeout(go, s * 1000));
   const at = (moment: () => boolean) => new Promise<void>((go) => {
     const stop = rumble.onFrame(() => {
@@ -163,7 +192,28 @@ async function script(name: string, rumble: RumbleApi, ui: HTMLElement, canvas: 
     await wait(2.5);
     return at(() => true);
   }
-  console.warn(`unknown shot "${name}" (entrance, fight or crown)`);
+  if (name === 'special') {
+    // saved a moment after a special's impact: its shockwave out on the floor and its big word up
+    let landedAt = -1;
+    const prev = rumble.show.onCue;
+    rumble.show.onCue = (c) => {
+      prev(c);
+      if (c.phase === 'impact' && landedAt < 0) landedAt = performance.now();
+    };
+    const shot = at(() => landedAt >= 0 && performance.now() - landedAt >= SPECIAL_SHOT_MS);
+    await a.quickFill();
+    await wait(3);
+    for (let t = 0; landedAt < 0; t += SPECIAL_RETRY_S) {
+      if (t >= SPECIAL_GIVE_UP_S) {
+        console.warn('shot "special": no special landed');
+        return;
+      }
+      a.special();
+      await wait(SPECIAL_RETRY_S);
+    }
+    return shot;
+  }
+  console.warn(`unknown shot "${name}" (entrance, fight, crown or special)`);
 }
 
 /** The frame with the page's words over it (banners, pops), posted to the dev server's /__shot. */

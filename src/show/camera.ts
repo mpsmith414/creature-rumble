@@ -34,6 +34,57 @@ export const CHAMPION_FILL = 0.4, CHAMPION_NEAR = 0.8, CHAMPION_ANGLE = (15 * Ma
 export const EASE = 2.5, CHAMPION_EASE = 6, CHAMPION_TURN = 1.5;
 const SPIKE_DIST = Math.hypot(ENTRANCE_FRONT, ENTRANCE_ASIDE);
 
+/**
+ * Air time (big-fights design §3): once the highest flier's torso is over LIFT_FROM m, the wide shot steps back WIDEN m
+ * and rises RISE m (and looks LOOK_RISE m higher) per metre it is higher still, up to LIFT_MAX m of it, so a flier stays
+ * in frame.
+ */
+export const LIFT_FROM = 2, LIFT_MAX = 7, WIDEN = 0.8, RISE = 0.7, LOOK_RISE = 0.45;
+/**
+ * A special's release: the wide shot leans in toward the attacker for PUNCH_S s (rising over the first PUNCH_RISE of it,
+ * then easing back), closing PUNCH_IN of the distance at most and never nearer than PUNCH_NEAR m; it looks PUNCH_LOOK of
+ * the way toward the attacker.
+ */
+export const PUNCH_S = 1, PUNCH_RISE = 0.25, PUNCH_IN = 0.3, PUNCH_NEAR = 5, PUNCH_LOOK = 0.5;
+/**
+ * A special's impact: a gentle shake of the wide shot (young children watch on a big TV): never more than SHAKE_MAX m
+ * off, dying away within SHAKE_S s; it wobbles at about SHAKE_HZ.
+ */
+export const SHAKE_MAX = 0.12, SHAKE_S = 0.5, SHAKE_DECAY = 6, SHAKE_HZ = 8;
+
+/** How much (m) the wide shot lifts for a flier whose torso is `top` m up (`LIFT_FROM` … capped at `LIFT_MAX`). */
+export function wideLift(top: number): number {
+  return Number.isFinite(top) ? Math.min(LIFT_MAX, Math.max(0, top - LIFT_FROM)) : 0;
+}
+
+const smoothstep01 = (k: number) => {
+  const x = Math.min(1, Math.max(0, k));
+  return x * x * (3 - 2 * x);
+};
+
+/** How far in (0 … 1) the release punch-in is `t` s after it started: eased in, then eased back out, 0 past PUNCH_S. */
+export function punchEnvelope(t: number): number {
+  if (!(t > 0) || t >= PUNCH_S) return 0;
+  const u = t / PUNCH_S;
+  return u < PUNCH_RISE ? smoothstep01(u / PUNCH_RISE) : smoothstep01((1 - u) / (1 - PUNCH_RISE));
+}
+
+/** How far off (m) a shake of strength `amp` m may put the camera `t` s after the impact: ≤ SHAKE_MAX, 0 past SHAKE_S. */
+export function shakeEnvelope(t: number, amp: number): number {
+  if (!(t >= 0) || t >= SHAKE_S || !(amp > 0)) return 0;
+  return Math.min(SHAKE_MAX, amp) * Math.exp(-SHAKE_DECAY * t) * (1 - t / SHAKE_S);
+}
+
+/** The shake's offset `t` s after an impact of strength `amp` (its length never past `shakeEnvelope`). Writes into `out`. */
+export function shakeOffset(t: number, amp: number, out: Vector3): Vector3 {
+  const e = shakeEnvelope(t, amp);
+  if (e === 0) return out.set(0, 0, 0);
+  const w = t * SHAKE_HZ * Math.PI * 2;
+  out.set(Math.sin(w), 0.8 * Math.sin(w * 0.83 + 1.3), Math.sin(w * 1.21 + 2.1));
+  const l = out.length();
+  return l > 1 ? out.multiplyScalar(e / l) : out.multiplyScalar(e);
+}
+
 /** How far (0 … 1) the camera closes on its target in `dt` s: 1 − exp(−rate dt) (2.5 by default). */
 export const smoothing = (dt: number, rate = EASE) => 1 - Math.exp(-rate * Math.max(0, dt));
 
@@ -120,7 +171,7 @@ export function facingYaw(piece: { readonly body: { rotation(): { x: number; y: 
   _fwd.set(0, 0, 1).applyQuaternion(_turn);
   return Math.hypot(_fwd.x, _fwd.z) > 1e-6 ? Math.atan2(_fwd.x, _fwd.z) : 0;
 }
-const _turn = new Quaternion(), _restInv = new Quaternion(), _fwd = new Vector3();
+const _turn = new Quaternion(), _restInv = new Quaternion(), _fwd = new Vector3(), _look = new Vector3(), _dir = new Vector3();
 
 /** The shortest turn (rad, in −π … π) from `a` to `b`. */
 const turnTo = (a: number, b: number) => Math.atan2(Math.sin(b - a), Math.cos(b - a));
@@ -136,6 +187,14 @@ export class CameraDirector {
   private champYaw = NaN;
   private readonly want = newFrame();
   private readonly stage: Stage;
+  /** The shot asked for last: the punch-in and the shake play on the wide shot only. */
+  private shot: 'wide' | 'entrance' | 'champion' = 'wide';
+  /** The release punch-in: toward where, and how long ago it started (s; PUNCH_S or more when none). */
+  private readonly punchAt = new Vector3();
+  private punchT = PUNCH_S;
+  /** The impact shake: how strong (m) and how long ago (s). */
+  private shakeAmp = 0;
+  private shakeT = SHAKE_S;
 
   /** `stage`: the ring (for the entrance shot's line of sight) and the camera's vertical field of view (degrees). */
   constructor(stage: Partial<Stage> = {}) {
@@ -145,19 +204,47 @@ export class CameraDirector {
   /** The next shot jumps straight there instead of easing (a page's first frame). */
   cut(): void { this.snap = true; }
 
-  /** The wide shot over `fighters` (who to frame; none frames the ring's middle). Unchanged from the spike. */
+  /**
+   * The wide shot over `fighters` (who to frame; none frames the ring's middle): the spike's, stepping back and rising
+   * (`wideLift`) while one of them flies high. A release punch-in and an impact shake play on it (see `apply`).
+   */
   wide(dt: number, fighters: readonly Tracked[]): void {
     const look = this.want.look.set(0, 0, 0);
+    let top = -Infinity;
     for (const f of fighters) {
       const p = f.ragdoll.torso.body.translation();
       look.x += p.x;
       look.z += p.z;
+      if (p.y > top) top = p.y;
     }
     if (fighters.length) look.multiplyScalar(FOLLOW / fighters.length);
+    const lift = wideLift(top);
     this.orbit += dt * ORBIT_RATE;
-    look.y += LOOK_UP;
-    this.want.pos.set(Math.sin(this.orbit) * WIDE_DIST, WIDE_HEIGHT, Math.cos(this.orbit) * WIDE_DIST).add(look);
+    look.y += LOOK_UP + lift * LOOK_RISE;
+    const dist = WIDE_DIST + lift * WIDEN;
+    this.want.pos.set(Math.sin(this.orbit) * dist, WIDE_HEIGHT + lift * (RISE - LOOK_RISE), Math.cos(this.orbit) * dist).add(look);
+    this.shot = 'wide';
+    this.punchT += Math.max(0, dt);
+    this.shakeT += Math.max(0, dt);
     this.ease(dt, EASE);
+  }
+
+  /** A special's release: the wide shot leans in toward `at` (the attacker) for PUNCH_S s. */
+  punch(at: { x: number; y: number; z: number }): void {
+    this.punchAt.set(at.x, at.y, at.z);
+    this.punchT = 0;
+  }
+
+  /** A special's impact: a gentle shake of the wide shot, `amp` m at most (capped at SHAKE_MAX). A stronger one wins. */
+  shake(amp: number): void {
+    if (shakeEnvelope(this.shakeT, this.shakeAmp) > Math.min(SHAKE_MAX, amp)) return;
+    this.shakeAmp = Math.min(SHAKE_MAX, Math.max(0, amp));
+    this.shakeT = 0;
+  }
+
+  /** Is a punch-in or a shake playing (on the wide shot)? */
+  get busy(): boolean {
+    return this.shot === 'wide' && (this.punchT < PUNCH_S || this.shakeT < SHAKE_S);
   }
 
   /**
@@ -165,6 +252,7 @@ export class CameraDirector {
    * 0 while it walks, 1 once it shows off.
    */
   entrance(dt: number, at: Vector3, entryDir: Vector3, height = 1.4, lift = 0, side = 0): void {
+    this.leaveWide('entrance');
     this.orbit += dt * ORBIT_RATE;
     entranceFrame(at, entryDir, height, lift, side, this.stage, this.want);
     this.ease(dt, EASE);
@@ -175,15 +263,36 @@ export class CameraDirector {
    * (`facingYaw` of its torso). The camera swings round to its front at CHAMPION_TURN, never whipping round.
    */
   champion(dt: number, at: Vector3, height: number, yaw: number): void {
+    this.leaveWide('champion');
     if (Number.isNaN(this.champYaw) || this.snap) this.champYaw = yaw;
     else this.champYaw += turnTo(this.champYaw, yaw) * smoothing(dt, CHAMPION_TURN);
     championFrame(at, height, this.champYaw, this.stage.fov, this.want);
     this.ease(dt, CHAMPION_EASE);
   }
 
+  /** Puts the camera on the shot (plus, on the wide shot, any punch-in and shake on top of its eased place). */
   apply(camera: PerspectiveCamera): void {
     camera.position.copy(this.pos);
-    camera.lookAt(this.look);
+    _look.copy(this.look);
+    if (this.shot === 'wide') {
+      const k = punchEnvelope(this.punchT);
+      if (k > 0) {
+        _dir.copy(this.punchAt).sub(this.pos);
+        const d = _dir.length();
+        const closer = Math.max(0, Math.min(d * PUNCH_IN, d - PUNCH_NEAR)) * k;
+        if (d > 1e-6) camera.position.addScaledVector(_dir, closer / d);
+        _look.lerp(this.punchAt, PUNCH_LOOK * k);
+      }
+      camera.position.add(shakeOffset(this.shakeT, this.shakeAmp, _dir));
+    }
+    camera.lookAt(_look);
+  }
+
+  /** Any other shot ends the punch-in and the shake: they never fight an entrance's or the champion's framing. */
+  private leaveWide(shot: 'entrance' | 'champion'): void {
+    this.shot = shot;
+    this.punchT = PUNCH_S;
+    this.shakeT = SHAKE_S;
   }
 
   private ease(dt: number, rate: number): void {

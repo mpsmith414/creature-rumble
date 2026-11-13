@@ -1,6 +1,7 @@
 /**
  * The fight-balance report: headless four-way bouts of random body kinds, against the spec's targets (§3.2). By default
- * it runs the balance tests' own samples: 20 bouts (seed 1) for fight length, 70 bouts (seed 2) for who wins.
+ * it runs the balance tests' own samples: 20 bouts (seed 1) for fight length and spectacle (pop-ups, air time,
+ * specials), 70 bouts (seed 2) for who wins.
  * Run: npx tsx tools/balance.ts
  *      npx tsx tools/balance.ts --bouts 40 --seed 3    one sample of your own, both tables
  *      npx tsx tools/balance.ts --seconds 300          a longer cap per bout (default 240)
@@ -37,6 +38,23 @@ function lengths(r: FourWayReport): void {
   console.log(`bouts with a quiet > 3 s  ${r.quietOver3} of ${r.bouts.length} (${((100 * r.quietOver3) / r.bouts.length).toFixed(0)}%; target ≤ 15%)`);
 }
 
+/** Median peak torso height of a landed normal hit before big fights (seed 1 sample; 0.98 for seed 2). */
+const BEFORE_PEAK = 0.97;
+
+/** The design's spectacle targets (2026-11-12 big fights): pop-ups, air time and specials. */
+function spectacle(r: FourWayReport): void {
+  const normal = r.bouts.flatMap((b) => b.launches.filter((l) => !l.special));
+  const speeds = normal.map((l) => l.launch).sort((a, b) => a - b);
+  const pct = (q: number) => (speeds.length ? speeds[Math.min(speeds.length - 1, Math.floor(q * speeds.length))] : 0);
+  console.log(`
+spectacle (${normal.length} normal hits landed)`);
+  console.log(`median peak torso height  ${r.medianPeak.toFixed(2).padStart(6)} m   (target ≥ ${(2 * BEFORE_PEAK).toFixed(2)}: 2 × ${BEFORE_PEAK} before)`);
+  console.log(`hits peaking ≥ 1.5 m      ${(100 * r.highShare).toFixed(0).padStart(6)} %   (target ≥ 25%)`);
+  console.log(`median air time / launch  ${r.medianAir.toFixed(2).padStart(6)} s`);
+  console.log(`specials per 45 s         ${r.specialsPer45.toFixed(2).padStart(6)}     (target ≥ 1 per fighter)`);
+  console.log(`launch speed (Hit.launch) p50 ${pct(0.5).toFixed(1)}  p75 ${pct(0.75).toFixed(1)}  p90 ${pct(0.9).toFixed(1)} m/s`);
+}
+
 function wins(r: FourWayReport): void {
   console.log(`\n(timed out, no winner: ${r.timedOut} of ${r.bouts.length})`);
   console.log('kind    bouts  wins  win rate   (target ≤ 0.35 each, in ≥ 30 bouts; fair share 0.25)');
@@ -52,9 +70,14 @@ const bouts = arg('bouts'), seed = arg('seed');
 if (bouts !== undefined || seed !== undefined) {
   const r = sample(bouts ?? 70, seed ?? 1);
   lengths(r);
+  spectacle(r);
   wins(r);
 } else {
-  lengths(sample(20, 1));
-  wins(sample(70, 2));
+  const a = sample(20, 1);
+  lengths(a);
+  spectacle(a);
+  const b = sample(70, 2);
+  wins(b);
+  spectacle(b);
 }
 console.log(`\n${((performance.now() - started) / 1000).toFixed(0)} s wall-clock`);

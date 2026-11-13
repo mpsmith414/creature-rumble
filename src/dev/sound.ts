@@ -53,9 +53,12 @@ export function showSound(ui: HTMLElement): void {
   button('Drum roll (2 s)', () => get().sfx.drumRoll(2));
   button('Sting', () => get().sfx.sting());
   button('Fanfare', () => get().sfx.fanfare());
+  button('Drum', () => get().sfx.drum());
   button('Swell', () => get().crowd.swell(0.7, 1.5));
   button('Calm', () => get().crowd.swell(0, 1.5));
   button('Roar', () => get().crowd.roar());
+  button('Rise (1 s)', () => get().crowd.rise(1));
+  button('Ooh', () => get().crowd.ooh());
   button('Aww', () => get().crowd.aww());
 
   const toggle = (label: string, fn: (on: boolean) => void) => {
@@ -83,8 +86,8 @@ export function showSound(ui: HTMLElement): void {
     void voice.check().then(() => (voiceNote.textContent = `Announcer voice: ${voice.available === 'yes' ? 'available' : 'not available (words only)'}`));
     return (announcer = new Announcer({ voice, banner: new Banner(document.body), mixer: p.mixer, sfx: p.sfx, crowd: p.crowd, rng: Math.random, now: () => performance.now() }));
   };
-  const names = { name: 'Sir Bounces', other: 'Captain Wobble', names: 'Sir Bounces and Captain Wobble', maker: 'Pickle', weight: 'two buckets' };
-  const beats: Beat[] = ['intro', 'groupIntro', 'hit', 'bigHit', 'ringOut', 'holdsRing', 'lone', 'tie', 'crown', 'again'];
+  const names = { name: 'Sir Bounces', other: 'Captain Wobble', names: 'Sir Bounces and Captain Wobble', special: 'MEGA PUNCH', maker: 'Pickle', weight: 'two buckets' };
+  const beats: Beat[] = ['intro', 'groupIntro', 'hit', 'bigHit', 'special', 'ringOut', 'holdsRing', 'lone', 'tie', 'crown', 'again'];
   for (const beat of beats) {
     button(`Say: ${beat}`, () => {
       const a = announce();

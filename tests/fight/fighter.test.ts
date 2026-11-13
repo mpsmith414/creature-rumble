@@ -5,7 +5,7 @@ import { addArenaColliders } from '../../src/arena/colliders';
 import { buildSkeleton } from '../../src/builder/skeleton';
 import { Fighter, type FightCtx, type Hit } from '../../src/fight/fighter';
 import { planFor } from '../../src/fight/moves';
-import { MOVE_POWER, MOVE_TIMING, TUNE, knockMultiplier, speedFor } from '../../src/fight/tune';
+import { MOVE_POWER, MOVE_TIMING, TUNE, knockMultiplier, launchFor, speedFor } from '../../src/fight/tune';
 import { ragdollLayout } from '../../src/physics/layout';
 import { createWorld, initPhysics } from '../../src/physics/world';
 import { mulberry32 } from '../../src/util/rng';
@@ -72,10 +72,24 @@ describe('tuning', () => {
   });
 
   it('holds the balanced numbers (npm run balance; the spike started from knock 0.6, flop 1, recover 0.7)', () => {
-    expect(TUNE).toEqual({ knock: 0.45, flop: 0.75, bounce: 0.15, gravity: 20, build: 0.045, heal: 0.05, bumper: 0.65, ringRadius: 6.5, recoverS: 0.5, edgeMargin: 2.5, spin: 1 });
+    expect(TUNE).toEqual({
+      knock: 0.45, flop: 0.75, bounce: 0.15, gravity: 16, build: 0.028, heal: 0.05, bumper: 0.65, ringRadius: 6.5, recoverS: 0.2,
+      edgeMargin: 2.5, spin: 1, drift: 0, pop: 7, floorBounce: 0.45, bumperBounce: 0.95,
+    });
     expect(MOVE_TIMING.punch).toEqual([0.45, 0.75, 0.4]);
     expect(MOVE_TIMING.divebomb).toEqual([0.45, 1.0, 0.8]);
-    expect(MOVE_POWER).toEqual({ punch: 2.8, jab: 1.35, kick: 2.55, bump: 1.85, headbutt: 3.2, spin: 3.2, divebomb: 2.95 });
+    expect(MOVE_POWER).toEqual({ punch: 2.4, jab: 1.5, kick: 2.65, bump: 1.7, headbutt: 2.5, spin: 2.65, divebomb: 2.8 });
+  });
+
+  test('a launch pops up big from the first hit; only its outward part grows with wobble', () => {
+    const fresh = launchFor(1, 1, 0.5, TUNE), wobbly = launchFor(1, 40, 0.5, TUNE);
+    expect(fresh.up).toBeCloseTo(TUNE.pop / 0.5 ** 0.1);
+    expect(wobbly.up).toBeCloseTo(fresh.up);
+    expect(wobbly.out).toBeGreaterThan(fresh.out + 1);
+    expect(fresh.out).toBeCloseTo((0.85 * 2.6 * (TUNE.drift + TUNE.build)) / 0.5 ** 0.3);
+    const special = launchFor(1, 1, 0.5, TUNE, { out: 0.5, up: 1.2 });
+    expect(special.up).toBeCloseTo(fresh.up * 1.2);
+    expect(special.out).toBeCloseTo(fresh.out * 0.5);
   });
 
   it('small fighters scurry, big ones lumber, within limits', () => {
@@ -126,13 +140,16 @@ describe('Fighter', () => {
     for (const h of hits) {
       wobble += h.power;
       // what the first hit launched by, given the wobble it had then (healing is slow over a few seconds)
-      if (h === hits[0]) expect(h.launch).toBeCloseTo((h.power * 2.6 * knockMultiplier(h.power, TUNE.build)) / f.ragdoll.mass ** 0.3, 3);
+      if (h === hits[0]) {
+        const { out, up } = launchFor(h.power, h.power, f.ragdoll.mass, TUNE);
+        expect(h.launch).toBeCloseTo(Math.hypot(out, up), 3);
+      }
     }
     expect(f.wobble).toBeGreaterThan(wobble - 10 * TUNE.heal - 1e-9);
     expect(f.wobble).toBeLessThanOrEqual(wobble);
   });
 
-  test('stun makes the fighter go limp then stand again', () => {
+  test('a hit pops the fighter up; it stays limp until it is down, then stands again', () => {
     const w = ring();
     const f = fighter(w, 'fists', new Vector3(0, 0, 0));
     const H = f.ragdoll.pos().y;
@@ -140,20 +157,26 @@ describe('Fighter', () => {
     f.knock(f.ragdoll.pos().add(new Vector3(-1, 0, 0)), 3);
     const stun = f.stun;
     expect(stun).toBeCloseTo(TUNE.flop * (0.45 + 3 * 0.18));
+    expect(f.flying).toBe(true);
     const knockedAt = t;
-    let down = -1, up = -1;
-    t = run(w, [f], stun + 1.5, {
+    let top = 0, landed = -1, up = -1, limpInAir = true;
+    t = run(w, [f], stun + 3, {
       from: t,
       each: (now) => {
         const y = f.ragdoll.pos().y;
-        if (down < 0 && y < 0.6 * H) down = now;
-        if (down >= 0 && up < 0 && y > 0.85 * H) up = now;
+        top = Math.max(top, y);
+        if (f.flying && f.stun <= 0) limpInAir = false;
+        if (landed < 0 && !f.flying) landed = now;
+        // down (it may land in a heap or on its feet), then standing tall on its own muscles again
+        if (landed >= 0 && up < 0 && f.stun <= 0 && y > 0.85 * H) up = now;
       },
     });
-    expect(down).toBeGreaterThan(0);
-    expect(down - knockedAt).toBeLessThan(stun);
-    expect(up).toBeGreaterThan(down);
-    expect(up - knockedAt).toBeLessThanOrEqual(stun + 1.5);
+    expect(top - H, 'popped up well over its own height').toBeGreaterThan(H);
+    expect(limpInAir, 'limp all through the flight').toBe(true);
+    expect(landed - knockedAt).toBeGreaterThan(0.4); // a real flight
+    expect(landed - knockedAt).toBeLessThan(2.5);
+    expect(up, 'it stood again').toBeGreaterThan(landed);
+    expect(up - landed).toBeLessThanOrEqual(stun + 1.5);
     expect(f.stun).toBeLessThanOrEqual(0);
   });
 

@@ -15,9 +15,13 @@ const FORWARD = new Vector3(0, 0, 1);
 const v = (p: { x: number; y: number; z: number }) => new Vector3(p.x, p.y, p.z);
 /** The spike's fighters were about this tall (m): its sizes and reaches are scaled by ringHeight / this. */
 const SPIKE_HEIGHT = 1.4;
+/** The spike's gravity (m/s²): its hops and flaps were tuned under it. */
+const SPIKE_G = 20;
+/** A divebomb hops forward this fast (m/s): it lands on its foe, not past it (the spike had 5). */
+const DIVE_FWD = 3;
 
 /** Hover spring (per s²) and damping (per s) holding the torso at its stand height; it carries 0.9 × the weight. */
-const HOVER_K = 60, HOVER_D = 9, HOVER_CARRY = 0.9;
+const HOVER_K = 60, HOVER_D = 9, HOVER_CARRY = 0.9, HOVER_MAX = 4;
 /** How hard it pushes toward where it wants to go (per s). */
 const DRIVE = 6;
 /** Upright PD gains: torso (also turns to face). */
@@ -126,7 +130,8 @@ export class Muscles {
   /** Hover the torso at stand height and push toward `want` (a horizontal vector up to length 1). */
   hover(dt: number, str: number, want: Vector3, gravity: number): void {
     const M = this.body.mass, p = this.body.pos(), vel = this.body.vel();
-    const fy = Math.max(0, M * gravity * HOVER_CARRY + M * (HOVER_K * (this.standHeight - p.y) - HOVER_D * vel.y)) * str;
+    // at most HOVER_MAX g: a body slammed into the floor is caught, not catapulted back up
+    const fy = Math.min(M * gravity * HOVER_MAX, Math.max(0, M * gravity * HOVER_CARRY + M * (HOVER_K * (this.standHeight - p.y) - HOVER_D * vel.y))) * str;
     this.body.torso.body.applyImpulse({ x: 0, y: fy * dt, z: 0 }, true);
     const dv = want.clone().multiplyScalar(this.speed).sub(new Vector3(vel.x, 0, vel.z));
     push(this.body.torso, dv, M * DRIVE * dt * str);
@@ -137,6 +142,29 @@ export class Muscles {
     const t = this.body.torso;
     upright(t, dt, str, face, this.body.mass, t.seg.radius + 0.35 * this.k, TORSO_KP, TORSO_KD);
     this.holdHead(dt, str, gravity);
+  }
+
+  /** Keep the torso upright without turning it (it may spin freely about up), and the head up on its neck. */
+  keepUp(dt: number, str: number, gravity: number): void {
+    const t = this.body.torso;
+    upright(t, dt, str, null, this.body.mass, t.seg.radius + 0.35 * this.k, TORSO_KP, TORSO_KD);
+    this.holdHead(dt, str, gravity);
+  }
+
+  /** Every piece moves at `vel` (m/s): a clean jump, dash or dive of the whole body. `keepY` keeps each piece's own up/down speed. */
+  setVelocity(vel: Vector3, keepY = false): void {
+    for (const p of this.body.pieces) {
+      const y = keepY ? p.body.linvel().y : vel.y;
+      p.body.setLinvel({ x: vel.x, y, z: vel.z }, true);
+    }
+  }
+
+  /** Cancels gravity on every piece for `dt` (a hang in the air) and bleeds `bleed` of its speed. */
+  float(dt: number, gravity: number, bleed: number): void {
+    for (const p of this.body.pieces) {
+      const lv = p.body.linvel();
+      p.body.applyImpulse({ x: -lv.x * bleed * p.mass, y: (gravity * dt - lv.y * bleed) * p.mass, z: -lv.z * bleed * p.mass }, true);
+    }
   }
 
   /**
@@ -192,14 +220,19 @@ export class Muscles {
     if (this.wings.length && sp > 0.3) for (const w of this.wings) push(w, UP, w.mass * Math.sin(this.walkPhase * 3) * 14 * dt);
   }
 
-  /** Wings: a lucky flap back in off the edge (60% chance each time it is possible, then 1.1 s to recharge). */
-  flapSave(dt: number, R: number, rng: () => number): void {
+  /**
+   * Wings: a lucky flap back in off the edge (60% chance each time it is possible, then 1.1 s to recharge). Its lift is
+   * the spike's at gravity 20, scaled so it climbs as high under any gravity.
+   */
+  flapSave(dt: number, R: number, rng: () => number, gravity = SPIKE_G): void {
     this.flapCd -= dt;
     if (!this.wings.length || this.flapCd > 0) return;
     const p = this.body.pos(), flat = new Vector3(p.x, 0, p.z);
     if (flat.length() > R - 0.2 && p.y > -2.2 && rng() < 0.6) {
       this.flapCd = 1.1;
-      push(this.body.torso, flat.normalize().multiplyScalar(-6).add(new Vector3(0, 9, 0)), this.body.mass);
+      // up to the flap's lift, not on top of a climb already under way
+      const lift = Math.max(0, 9 * Math.sqrt(gravity / SPIKE_G) - Math.max(0, this.body.vel().y));
+      push(this.body.torso, flat.normalize().multiplyScalar(-6).add(new Vector3(0, lift, 0)), this.body.mass);
       for (const w of this.wings) push(w, UP, w.mass * 8);
     }
   }
@@ -212,8 +245,8 @@ export class Muscles {
     if (move === 'headbutt') push(w, back.add(UP.clone().multiplyScalar(-0.5)), w.mass * 12 * dt);
   }
 
-  /** The strike's burst, once, as the strike window opens. */
-  strike(move: Move, dir: Vector3, w: Piece): void {
+  /** The strike's burst, once, as the strike window opens (a divebomb's hop climbs as high under any `gravity`). */
+  strike(move: Move, dir: Vector3, w: Piece, gravity = SPIKE_G): void {
     const M = this.body.mass, torso = this.body.torso, up = (y: number) => UP.clone().multiplyScalar(y);
     switch (move) {
       case 'punch': case 'jab':
@@ -225,14 +258,24 @@ export class Muscles {
         break;
       case 'bump': push(torso, dir.clone().add(up(0.25)), M * 7); break;
       case 'headbutt': push(torso, dir.clone().add(up(0.15)), M * 10); push(w, dir, w.mass * 12); break;
-      case 'divebomb': push(torso, dir.clone().multiplyScalar(5).add(up(9)), M); break;
+      case 'divebomb': push(torso, dir.clone().multiplyScalar(DIVE_FWD).add(up(9 * Math.sqrt(gravity / SPIKE_G))), M); break;
       case 'spin': break;
     }
   }
 
-  /** Spin: keeps twisting the body round through the strike window. */
-  spin(dt: number): void {
-    this.body.torso.body.applyTorqueImpulse({ x: 0, y: this.body.mass * 2.2 * this.k * this.k * dt * 10, z: 0 }, true);
+  /** Spin: keeps twisting the body round through the strike window (`times` × the tail's own spin). */
+  spin(dt: number, times = 1): void {
+    this.body.torso.body.applyTorqueImpulse({ x: 0, y: this.body.mass * 2.2 * this.k * this.k * dt * 10 * times, z: 0 }, true);
+  }
+
+  /** Flings `pieces` out from the torso, level, `k` m/s worth each tick (helicopter legs). */
+  splay(pieces: readonly Piece[], k: number): void {
+    const c = v(this.body.torso.body.translation());
+    for (const p of pieces) {
+      const d = v(p.body.translation()).sub(c).setY(0);
+      if (d.lengthSq() < 1e-6) continue;
+      push(p, d.normalize().add(UP.clone().multiplyScalar(0.15)), p.mass * k);
+    }
   }
 }
 

@@ -1,24 +1,27 @@
 /**
  * What the ring announcer says. Hammy, kind and short, for children aged 4 to 6: slapstick only, never mean about a creature,
  * nothing scary, no injuries. A ring-out goes into the ball pit and is a happy splash.
- * Slots: `{name}` (the one doing it), `{other}` (the one it happens to), `{names}` (everyone in a group). Names are shouted.
+ * Slots: `{name}` (the one doing it), `{other}` (the one it happens to), `{names}` (everyone in a group), `{special}` (a
+ * special attack's name, e.g. "MEGA PUNCH"). Names and specials are shouted.
  * An intro is not here: it is the recipe's own `fight.intro` (see `introText` in announcer.ts).
  */
 
-export type Beat = 'intro' | 'groupIntro' | 'hit' | 'bigHit' | 'ringOut' | 'holdsRing' | 'lone' | 'tie' | 'crown' | 'again';
+export type Beat = 'intro' | 'groupIntro' | 'hit' | 'bigHit' | 'special' | 'ringOut' | 'holdsRing' | 'lone' | 'tie' | 'crown' | 'again';
 
 /** The words a line may use. Missing ones get a friendly stand-in, so no slot is ever left showing. */
-export type Slots = Partial<Record<'name' | 'other' | 'names' | 'maker' | 'weight', string>>;
+export type Slots = Partial<Record<'name' | 'other' | 'names' | 'special' | 'maker' | 'weight', string>>;
 
 /** The longest line, in characters, with every slot filled by a short name. */
 export const LINE_MAX = 120;
 
-const SHOUTED = new Set(['name', 'other', 'names']);
-const STAND_IN: Record<string, string> = { name: 'OUR HERO', other: 'THEIR PAL', names: 'EVERYBODY', maker: 'a mystery maker', weight: 'a mystery weight' };
+const SHOUTED = new Set(['name', 'other', 'names', 'special']);
+const STAND_IN: Record<string, string> = {
+  name: 'OUR HERO', other: 'THEIR PAL', names: 'EVERYBODY', special: 'SUPER MOVE', maker: 'a mystery maker', weight: 'a mystery weight',
+};
 
 /** Fills every `{slot}` in one pass (so a name holding braces cannot make a new slot); names go in capitals, shouted. */
 export function fillSlots(text: string, slots: Slots): string {
-  return text.replace(/\{(name|other|names|maker|weight)\}/g, (_, k: keyof Slots) => {
+  return text.replace(/\{(name|other|names|special|maker|weight)\}/g, (_, k: keyof Slots) => {
     const v = slots[k]?.replace(/[{}]/g, '').trim();
     if (!v) return STAND_IN[k];
     return SHOUTED.has(k) ? v.toUpperCase() : v;
@@ -99,6 +102,26 @@ export const LINES: Record<Exclude<Beat, 'intro'>, readonly string[]> = {
     'Yippee! {name} has the power of the pogo stick!',
     'Up, up, UP goes {other}! Bye bye!',
     "That's what we call a big bouncy bump!",
+  ],
+  special: [
+    'Uh-oh, here it comes! {name} is charging up the {special}!',
+    '{name} is glowing! Get ready for the {special}!',
+    "Hold on to your hats, everybody! It's the {special}!",
+    "Ooh, look at {name} sparkle! That's the {special}!",
+    'Here comes the {special}! {name} has been saving it up!',
+    'Wiggle, wobble, WOW! {name} is winding up the {special}!',
+    "It's time! {name} is doing the {special}!",
+    'Stand back, everybody! The {special} is on its way!',
+    '{name} is all charged up! Can you say {special}?',
+    'Oh boy, oh boy! {name} has a super move: the {special}!',
+    'Count with me: one, two, {special}!',
+    "The crowd's on its feet! {name} is going for the {special}!",
+    "What's that glow? It's the super silly {special} from {name}!",
+    '{name} is buzzing like a bee! Here comes the {special}!',
+    "Get your giggles ready! It's the {special} from {name}!",
+    "A big wind-up from {name}! That's the famous {special}!",
+    'Zing, zang, zoom! {name} lets loose the {special}!',
+    'Bouncy alert! {name} is powering up the {special}!',
   ],
   ringOut: [
     'Splash! {other} goes into the ball pit! Hooray!',

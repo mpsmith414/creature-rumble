@@ -16,6 +16,13 @@ beforeAll(initPhysics);
 
 const DT = 1 / 60;
 const UP = new Vector3(0, 1, 0);
+/**
+ * A head may be squashed under its neck for a moment by a foe landing on it from a pop-up (big fights), never longer
+ * than this (s): a neck that fails holds the head down for good.
+ */
+const SQUASHED_S = 0.25;
+/** Seconds after a stun (or a flight) before a fighter counts as standing: the scramble back up plus a breath. */
+const SETTLE = TUNE.recoverS + 0.25;
 
 function fighter(w: RAPIER.World, kind: string, id: string, at: Vector3, yaw: number, seed: number): Fighter {
   const recipe = loadFixture(kind);
@@ -43,8 +50,8 @@ function neckOf(p: Piece): Vector3 {
 
 /**
  * A 10 s duel against another kind. "Standing" = fighting, on the ring, torso upright (not lying: the tail's spin lays
- * its own torso nearly flat), not stunned and past the scramble back up (recoverS, plus a breath). A stunned head may
- * flop; a standing one keeps its head up and over its neck.
+ * its own torso nearly flat), not stunned (nor limp from a launch) and past the scramble back up plus a breath. A
+ * stunned head may flop; a standing one keeps its head up and over its neck.
  */
 test.each(KINDS)('%s keeps its head up while it moves and fights', (kind) => {
   const w = createWorld(TUNE.gravity);
@@ -59,6 +66,7 @@ test.each(KINDS)('%s keeps its head up while it moves and fights', (kind) => {
     let t = 0, standing = 0, steady = 0, up = 0, hung = 0, attacks = 0, travel = 0;
     const was = a.ragdoll.pos();
     const hangs: string[] = [];
+    const hungFor = new Map<Fighter, number>();
     while (t < 10) {
       for (const f of fs) f.think(DT, t, ctx);
       w.step();
@@ -72,13 +80,17 @@ test.each(KINDS)('%s keeps its head up while it moves and fights', (kind) => {
         const head = f.ragdoll.head!;
         if (f.state !== 'fighting' || f.ragdoll.pos().y < 0 || f.stun > 0) continue;
         steady++; // not stunned, on the ring
-        if (upness(f.ragdoll.torso) <= 0.5 || t - lastStun.get(f)! < TUNE.recoverS + 0.25) continue;
+        if (upness(f.ragdoll.torso) <= 0.5 || t - lastStun.get(f)! < SETTLE) continue;
         standing++;
         if (upness(head) > 0.5) up++;
         if (head.body.translation().y < neckOf(head).y) {
-          hung++;
-          if (hangs.length < 3) hangs.push(`${f.id} at ${t.toFixed(2)} s`);
-        }
+          const run = (hungFor.get(f) ?? 0) + 1;
+          hungFor.set(f, run);
+          if (run * DT > SQUASHED_S) {
+            hung++;
+            if (hangs.length < 3) hangs.push(`${f.id} at ${t.toFixed(2)} s`);
+          }
+        } else hungFor.set(f, 0);
       }
     }
     expect(travel, 'it moved about').toBeGreaterThan(1);
@@ -86,7 +98,7 @@ test.each(KINDS)('%s keeps its head up while it moves and fights', (kind) => {
     expect(standing, 'enough standing to judge').toBeGreaterThan(3 / DT);
     expect(standing / steady, 'standing is most of the time not stunned (the exclusions swallow little)').toBeGreaterThan(0.5);
     expect(up / standing, 'head up (up · world up > 0.5) on 95% of standing steps').toBeGreaterThanOrEqual(0.95);
-    expect(hung, `head never below its neck while standing: ${hangs.join(', ')}`).toBe(0);
+    expect(hung, `head never below its neck for long while standing: ${hangs.join(', ')}`).toBe(0);
   } finally {
     w.free();
   }

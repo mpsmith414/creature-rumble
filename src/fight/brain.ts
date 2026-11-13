@@ -9,7 +9,7 @@ import { fnv1a } from '../util/hash';
 export type AttackPhase = 'none' | 'windup' | 'strike' | 'cool';
 
 /** What the brain needs to know about another fighter. */
-export type Rival = { readonly state: string; readonly ragdoll: { pos(): Vector3 } };
+export type Rival = { readonly state: string; readonly ragdoll: { pos(): Vector3 }; /** Launched and not down yet. */ readonly flying?: boolean };
 
 /** Strut circle radius (× ring radius) and speed (rad/s) when showing off. */
 const STRUT_R = 0.42, STRUT_RATE = 0.6;
@@ -76,7 +76,8 @@ export class Brain<F extends Rival> {
       const dist = to.length();
       if (dist > 1e-6) face = to.clone().divideScalar(dist);
       want.copy(face).multiplyScalar(dist > reach * 0.75 ? 1 : CREEP);
-      if (dist < reach && this.atk.phase === 'none') this.startAttack(face, rng, false);
+      // a flier is out of reach until it comes down: wait for it rather than swing under it
+      if (dist < reach && this.atk.phase === 'none' && !this.target.flying) this.startAttack(face, rng, false);
     }
     if (want.lengthSq() > 1) want.normalize();
     // don't wander off the edge on purpose

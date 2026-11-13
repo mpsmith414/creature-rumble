@@ -2,7 +2,8 @@ import { PerspectiveCamera, Quaternion, Vector3 } from 'three/webgpu';
 import { describe, expect, test } from 'vitest';
 import {
   CameraDirector, CHAMPION_ANGLE, CHAMPION_FILL, championFrame, EYE_AT, facingYaw, clearHeight, ENTRANCE_ASIDE, ENTRANCE_FRONT, ENTRANCE_LOOK_UP, ENTRANCE_UP, entranceFrame,
-  ORBIT_RATE, smoothing, swing, WIDE_DIST, WIDE_HEIGHT, type Stage,
+  LIFT_FROM, LIFT_MAX, ORBIT_RATE, PUNCH_NEAR, PUNCH_S, punchEnvelope, SHAKE_MAX, SHAKE_S, shakeEnvelope, shakeOffset, smoothing, swing,
+  WIDE_DIST, WIDE_HEIGHT, wideLift, type Stage,
 } from '../../src/show/camera';
 import { entranceAt, SHOW_JUMP, WALK_FROM, WALK_TO } from '../../src/show/timeline';
 
@@ -257,5 +258,130 @@ describe('championFrame', () => {
     expect(facingYaw(piece(0))).toBeCloseTo(0);
     expect(facingYaw(piece(1.2))).toBeCloseTo(1.2);
     expect(facingYaw(piece(-2.9))).toBeCloseTo(-2.9);
+  });
+});
+
+describe('air time and specials on the wide shot', () => {
+  const TV = 16 / 9;
+  const applied = (c: CameraDirector) => {
+    const cam = new PerspectiveCamera(STAGE.fov, TV, 0.1, 300);
+    c.apply(cam);
+    cam.updateMatrixWorld();
+    return cam;
+  };
+
+  test('wideLift: nothing for fighters on their feet, more the higher a flier goes, capped', () => {
+    expect(wideLift(1.2)).toBe(0);
+    expect(wideLift(LIFT_FROM)).toBe(0);
+    expect(wideLift(LIFT_FROM + 2)).toBeCloseTo(2);
+    expect(wideLift(100)).toBe(LIFT_MAX);
+    expect(wideLift(-Infinity)).toBe(0);
+  });
+
+  test('the wide shot steps back and rises while someone flies high, and settles back once they land', () => {
+    const c = new CameraDirector();
+    c.cut();
+    c.wide(1 / 60, [at(0, 1, 0), at(2, 1, 0)]);
+    const rest = c.pos.clone().sub(c.look);
+    run(4, (dt) => c.wide(dt, [at(0, 1, 0), at(2, 7, 0)]));
+    const up = c.pos.clone().sub(c.look);
+    expect(Math.hypot(up.x, up.z)).toBeGreaterThan(Math.hypot(rest.x, rest.z) + 3);
+    expect(c.pos.y).toBeGreaterThan(WIDE_HEIGHT + 3);
+    run(6, (dt) => c.wide(dt, [at(0, 1, 0), at(2, 1, 0)]));
+    expect(c.pos.y).toBeCloseTo(WIDE_HEIGHT + 0.5, 1);
+  });
+
+  test('a high flier anywhere over the ring stays in frame as the camera orbits', () => {
+    for (const [x, z] of [[0, 0], [5, 0], [-5, 0], [0, 5], [0, -5], [4, 4], [-4, -4]]) {
+      for (const y of [3, 5, 7, 9]) {
+        const c = new CameraDirector();
+        c.cut();
+        const fs = [at(x, y, z), at(-x * 0.5, 1, -z * 0.5), at(1, 1, -1)];
+        run(5, (dt) => c.wide(dt, fs));
+        expect(inFrame(new Vector3(x, y, z), applied(c)), `${x},${y},${z}`).toBe(true);
+      }
+    }
+  });
+
+  test('punchEnvelope rises smoothly to 1, eases back out, and is over by PUNCH_S (about a second)', () => {
+    expect(PUNCH_S).toBeLessThanOrEqual(1.2);
+    expect(punchEnvelope(0)).toBe(0);
+    expect(punchEnvelope(PUNCH_S)).toBe(0);
+    let top = 0, jump = 0, last = 0;
+    for (let t = 0; t <= PUNCH_S; t += 1 / 120) {
+      const k = punchEnvelope(t);
+      top = Math.max(top, k);
+      jump = Math.max(jump, Math.abs(k - last));
+      last = k;
+    }
+    expect(top).toBeCloseTo(1, 2);
+    expect(jump).toBeLessThan(0.05); // never a cut
+  });
+
+  test('a release punch-in leans the wide shot toward the attacker, never nearer than PUNCH_NEAR, then lets go', () => {
+    const c = new CameraDirector();
+    c.cut();
+    const fs = [at(0, 1, 0)];
+    c.wide(1 / 60, fs);
+    const attacker = new Vector3(3, 1, 1);
+    const before = applied(c).position.distanceTo(attacker);
+    c.punch(attacker);
+    let nearest = Infinity;
+    run(PUNCH_S * 0.95, (dt) => {
+      c.wide(dt, fs);
+      const cam = applied(c);
+      nearest = Math.min(nearest, cam.position.distanceTo(attacker));
+      expect(inFrame(attacker, cam)).toBe(true);
+    });
+    expect(nearest).toBeLessThan(before - 1);
+    expect(nearest).toBeGreaterThanOrEqual(PUNCH_NEAR - 1e-6);
+    run(0.2, (dt) => c.wide(dt, fs));
+    expect(applied(c).position.distanceTo(c.pos)).toBeLessThan(1e-9);
+  });
+
+  test('the shake is gentle: its envelope never passes SHAKE_MAX and dies away within SHAKE_S', () => {
+    expect(SHAKE_MAX).toBeLessThanOrEqual(0.15);
+    const v = new Vector3();
+    for (const amp of [0.01, 0.1, 1, 50]) {
+      for (let t = 0; t < SHAKE_S + 0.2; t += 1 / 240) {
+        expect(shakeOffset(t, amp, v).length()).toBeLessThanOrEqual(Math.min(SHAKE_MAX, amp) + 1e-9);
+        expect(shakeEnvelope(t, amp)).toBeLessThanOrEqual(SHAKE_MAX);
+      }
+      expect(shakeEnvelope(SHAKE_S, amp)).toBe(0);
+      expect(shakeEnvelope(SHAKE_S * 0.5, amp)).toBeLessThan(shakeEnvelope(0.01, amp));
+    }
+  });
+
+  test('an impact shakes the wide shot a little, never more than SHAKE_MAX, and then it is still', () => {
+    const c = new CameraDirector();
+    c.cut();
+    c.wide(1 / 60, []);
+    c.shake(10);
+    let most = 0;
+    run(SHAKE_S, (dt) => {
+      c.wide(dt, []);
+      most = Math.max(most, applied(c).position.distanceTo(c.pos));
+    });
+    expect(most).toBeGreaterThan(0.01);
+    expect(most).toBeLessThanOrEqual(SHAKE_MAX + 1e-9);
+    run(0.1, (dt) => c.wide(dt, []));
+    expect(applied(c).position.distanceTo(c.pos)).toBeLessThan(1e-9);
+  });
+
+  test('a punch-in or shake never touches an entrance or the champion shot', () => {
+    const c = new CameraDirector();
+    c.cut();
+    c.wide(1 / 60, []);
+    c.punch(new Vector3(2, 1, 0));
+    c.shake(0.1);
+    c.champion(1 / 60, new Vector3(), 1.4, 0);
+    expect(c.busy).toBe(false);
+    expect(applied(c).position.distanceTo(c.pos)).toBeLessThan(1e-9);
+    c.punch(new Vector3(2, 1, 0));
+    c.shake(0.1);
+    c.entrance(1 / 60, new Vector3(9, 0, -5), DIR, 1.4, 0, 0);
+    expect(applied(c).position.distanceTo(c.pos)).toBeLessThan(1e-9);
+    c.wide(1 / 60, []); // back to the wide shot: what was cut off does not come back
+    expect(applied(c).position.distanceTo(c.pos)).toBeLessThan(1e-9);
   });
 });

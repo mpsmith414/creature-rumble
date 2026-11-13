@@ -28,7 +28,8 @@ test('bumper has 56 segments at the configured height', () => {
     const out = new Vector3(1, 0, 0).applyQuaternion(new Quaternion(r.x, r.y, r.z, r.w));
     expect(out.dot(new Vector3(t.x, 0, t.z).normalize())).toBeCloseTo(1);
     expect(c.friction()).toBeCloseTo(0.3);
-    expect(c.restitution()).toBeCloseTo(0.6);
+    expect(c.restitution()).toBeCloseTo(TUNE.bumperBounce);
+    expect(c.restitutionCombineRule()).toBe(RAPIER.CoefficientCombineRule.Max);
   }
 });
 
@@ -60,5 +61,6 @@ test('a ball dropped inside the ring rests on top at y≈0', () => {
   expect(t.radius()).toBeCloseTo(TUNE.ringRadius);
   expect(t.translation().y + t.halfHeight()).toBeCloseTo(0);
   expect(t.friction()).toBeCloseTo(0.9);
-  expect(t.restitution()).toBeCloseTo(0.2);
+  expect(t.restitution()).toBeCloseTo(TUNE.floorBounce);
+  expect(t.restitutionCombineRule()).toBe(RAPIER.CoefficientCombineRule.Max);
 });

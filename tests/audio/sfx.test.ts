@@ -95,7 +95,7 @@ describe('sound', () => {
     expect(pitchForSize(1.6 ** 2)).toBeCloseTo(1, 5);
   });
 
-  for (const name of ['boing', 'bonk', 'whoosh', 'thud', 'sting', 'fanfare', 'drumRoll'] as const) {
+  for (const name of ['boing', 'bonk', 'whoosh', 'thud', 'sting', 'fanfare', 'drumRoll', 'drum'] as const) {
     it(`${name} schedules sources that stop, and cleans up when they end`, () => {
       const { ctx, nodes } = fakeCtx();
       const sfx = createSfx(ctx, out());
@@ -164,6 +164,25 @@ describe('sound', () => {
       expect(ramps[0].value).toBeLessThan(0.25);
       expect(ramps[1].value).toBeGreaterThan(ramps[0].value!);
     });
+    it('rise climbs over the wind-up, then settles back to the resting bed', () => {
+      const { crowd, level } = setup();
+      crowd.rise(1);
+      const ramps = level.calls.filter((c) => c.kind === 'linear');
+      expect(ramps[0].value).toBeGreaterThan(0.5);
+      expect(ramps[0].time).toBeCloseTo(2, 5); // now (1) + 1 s
+      expect(ramps[1].value).toBeCloseTo(0.25, 5);
+      expect(ramps[1].time).toBeGreaterThan(ramps[0].time!);
+    });
+    it('ooh swells quickly with the pitch sliding up, then settles back', () => {
+      const { crowd, level, nodes } = setup();
+      crowd.ooh();
+      const ramps = level.calls.filter((c) => c.kind === 'linear');
+      expect(ramps[0].value).toBeGreaterThan(0.25);
+      expect(ramps[0].time! - 1).toBeLessThan(0.5);
+      expect(ramps[1].value).toBeCloseTo(0.25, 5);
+      const filter = nodes.find((n) => n.kind === 'filter')!;
+      expect(filter.frequency.calls.some((c) => c.kind === 'exp' && c.value! > 900)).toBe(true);
+    });
     it('a second start makes no second bed', () => {
       const { crowd, nodes } = setup();
       crowd.start();
@@ -202,7 +221,7 @@ describe('sound', () => {
     const { ctx, raw, nodes } = fakeCtx();
     raw.state = 'suspended';
     const sfx = createSfx(ctx, out());
-    sfx.boing(1); sfx.bonk(); sfx.whoosh(); sfx.thud(); sfx.drumRoll(1); sfx.sting(); sfx.fanfare();
+    sfx.boing(1); sfx.bonk(); sfx.whoosh(); sfx.thud(); sfx.drumRoll(1); sfx.sting(); sfx.fanfare(); sfx.drum();
     expect(nodes.length).toBe(0);
   });
 
@@ -216,8 +235,8 @@ describe('sound', () => {
     const { ctx } = fakeCtx();
     const sfx = createSfx(ctx, out()), crowd = createCrowd(ctx, out());
     expect(() => {
-      sfx.boing(0.45); sfx.boing(3.5); sfx.bonk(); sfx.whoosh(); sfx.thud(); sfx.drumRoll(3); sfx.sting(); sfx.fanfare();
-      crowd.start(); crowd.swell(0, 1); crowd.swell(1, 1); crowd.roar(); crowd.aww(); crowd.stop();
+      sfx.boing(0.45); sfx.boing(3.5); sfx.bonk(); sfx.whoosh(); sfx.thud(); sfx.drumRoll(3); sfx.sting(); sfx.fanfare(); sfx.drum();
+      crowd.start(); crowd.swell(0, 1); crowd.swell(1, 1); crowd.roar(); crowd.aww(); crowd.rise(1); crowd.ooh(); crowd.stop();
     }).not.toThrow();
   });
 

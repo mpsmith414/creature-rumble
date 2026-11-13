@@ -55,4 +55,10 @@ describe('bigLaunch: a hit that would carry its target over the bumper', () => {
     expect(bigLaunch({ x: R - 2.5, z: 0 }, wobbly, b, R)).toBe(false); // too far in
     expect(bigLaunch({ x: R - 1, z: 0 }, wobbly - 2, b, R)).toBe(false); // not wobbly enough
   });
+
+  test('a big pop-up near the edge counts even before the target is wobbly', () => {
+    expect(bigLaunch({ x: R - 1, z: 0 }, 0, b, R, 9, 8.4)).toBe(true);
+    expect(bigLaunch({ x: R - 1, z: 0 }, 0, b, R, 8, 8.4)).toBe(false); // not launched hard enough
+    expect(bigLaunch({ x: 0, z: 0 }, 0, b, R, 20, 8.4)).toBe(false); // far from the edge
+  });
 });

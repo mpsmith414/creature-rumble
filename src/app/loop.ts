@@ -1,5 +1,6 @@
 import type RAPIER from '@dimforge/rapier3d-compat';
 import type { Fighter, FightCtx, Hit } from '../fight/fighter';
+import type { SpecialCue } from '../fight/special';
 import type { Tune } from '../fight/tune';
 import { isOut, type Match, type MatchEvent } from '../match/match';
 import { setFrozen } from '../show/entrance';
@@ -49,6 +50,8 @@ export class RingLoop {
   /** When (real s) each fallen fighter went out. */
   private readonly outAt = new Map<Fighter, number>();
   private readonly tally = new Map<string, number>();
+  /** Special cues not yet handed out by `step` (a fighter let go between frames ends its special here). */
+  private readonly cues: SpecialCue[] = [];
   private acc = 0;
   private rng: Rng;
   private readonly ring: Fighter[] = [];
@@ -128,19 +131,32 @@ export class RingLoop {
     for (const f of this.fighters.values()) f.hits = 0;
   }
 
-  /** One frame of `realDt` s at real time `now` (s): the hits landed and the fighters ruled out, with the match's events. */
-  step(realDt: number, now: number): { hits: Hit[]; outs: string[]; events: MatchEvent[] } {
+  /**
+   * One frame of `realDt` s at real time `now` (s): the hits landed and the fighters ruled out, with the match's events,
+   * and the special-attack cues in order (every special's `charge` is followed by its `end`, even when its fighter is
+   * ruled out or let go mid-special).
+   */
+  step(realDt: number, now: number): { hits: Hit[]; outs: string[]; events: MatchEvent[]; specials: SpecialCue[] } {
     const hits: Hit[] = [], outs: string[] = [], events: MatchEvent[] = [];
     this.acc += Math.max(0, realDt) * this.slowmo.timeScale(now);
     let n = 0;
     while (this.acc >= DT - 1e-9 && n < MAX_STEPS) {
       this.physicsStep(now, hits, outs, events);
+      this.collectCues();
       this.acc -= DT;
       n++;
     }
     if (n === MAX_STEPS) this.acc = 0;
     this.dropFallen(now);
-    return { hits, outs, events };
+    this.collectCues();
+    return { hits, outs, events, specials: this.cues.splice(0) };
+  }
+
+  private collectCues(): void {
+    for (const f of this.fighters.values()) {
+      const cs = f.takeCues();
+      if (cs.length) this.cues.push(...cs);
+    }
   }
 
   private emit(evs: MatchEvent[], into: MatchEvent[]): void {
@@ -230,6 +246,7 @@ export class RingLoop {
     if (this.champion === f) this.champion = null;
     const had = f.state !== 'gone' || f.ragdoll.pieces.length > 0;
     f.dispose();
+    this.cues.push(...f.takeCues()); // a special cut short ends here
     if (had) this.onGone(f);
   }
 }

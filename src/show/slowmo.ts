@@ -39,9 +39,11 @@ export class SlowMo {
 }
 
 /**
- * A hit worth a slow-mo: its target (where it is now, already knocked) is within 2 m of the ring's edge and wobbly
- * enough that its knockback is over 1× — the launch that carries it over the bumper.
+ * A hit worth a slow-mo: its target (where it is now, already knocked) is within 2 m of the ring's edge and either
+ * wobbly enough that its knockback is over 1× or launched at least `bigSpeed` m/s (the big pop-ups and specials that
+ * carry it over the bouncy bumper even before it is wobbly).
  */
-export function bigLaunch(target: { x: number; z: number }, wobble: number, build: number, ringRadius: number): boolean {
-  return Math.hypot(target.x, target.z) > ringRadius - 2 && knockMultiplier(wobble, build) > 1;
+export function bigLaunch(target: { x: number; z: number }, wobble: number, build: number, ringRadius: number,
+  launch = 0, bigSpeed = Infinity): boolean {
+  return Math.hypot(target.x, target.z) > ringRadius - 2 && (knockMultiplier(wobble, build) > 1 || launch >= bigSpeed);
 }

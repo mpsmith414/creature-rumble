@@ -32,6 +32,8 @@ export interface Sfx {
   /** The hit on the name. */
   sting(): void;
   fanfare(): void;
+  /** One big drum hit: a special winding up. */
+  drum(): void;
 }
 
 type Source = OscillatorNode | AudioBufferSourceNode;
@@ -150,6 +152,13 @@ export function createSfx(ctx: AudioContext, out: AudioNode): Sfx {
         nodes.push(a.g);
       });
       cleanup(srcs, nodes);
+    },
+    drum() {
+      const t = ctx.currentTime;
+      const a = tone('sine', t, 150, 55, 0.5, 0.9, 0.004);
+      const b = tone('triangle', t, 230, 110, 0.18, 0.25, 0.003);
+      const c = noise(t, 0.14, 'lowpass', 1200, 300, 0.7, 0.45);
+      cleanup([a.o, b.o, c.s], [a.g, b.g, c.f, c.g]);
     },
   };
 

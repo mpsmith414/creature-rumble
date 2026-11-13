@@ -44,7 +44,25 @@ export type BoutResult = {
   end: number;
   /** Time ran out with 2+ still fighting. */
   timedOut: boolean;
+  /** Every landed hit's flight: how high (m above the ring top) the target's torso got and how long it was up (s). */
+  launches: Launch[];
+  /** Specials started, by fighter id. */
+  specials: Record<string, number>;
+  /** Fighter-seconds spent fighting with at least one opponent (the specials rate's time base). */
+  fightSeconds: number;
 };
+
+/**
+ * One landed hit's flight, watched for `WATCH_S` after it: `peak` is the highest the target's torso got (m above the
+ * ring top); `air` is how long (s) until the torso came back down to the height it was hit at (0 when it never rose);
+ * `launch` is the hit's launch speed (m/s, `Hit.launch`).
+ */
+export type Launch = { peak: number; air: number; special: boolean; launch: number };
+
+/** How long (s) a hit's flight is watched. */
+const WATCH_S = 3;
+/** A torso that rose less than this (m) over where it was hit was not launched. */
+const ROSE = 0.05;
 
 /** A fighter's id in a bout: its kind and its place, e.g. `blob-2`. */
 export const kindOf = (id: string) => id.replace(/-\d+$/, '');
@@ -70,21 +88,38 @@ export function simulateBout(kinds: string[], o: { seconds: number; seed: number
     const ringOuts: BoutResult['ringOuts'] = [];
     let fighting = fs.slice();
     const ctx: FightCtx = { others: fighting, boast: false, tune, rng };
-    let t = 0, lastHit = 0, longestQuiet = 0;
+    let t = 0, lastHit = 0, longestQuiet = 0, fightSeconds = 0;
+    const launches: Launch[] = [];
+    const watching: (Launch & { f: Fighter; t0: number; y0: number; rose: boolean })[] = [];
+    const specials: Record<string, number> = Object.fromEntries(fs.map((f) => [f.id, 0]));
     const steps = Math.round(o.seconds / DT);
     for (let s = 0; s < steps && fighting.length >= 2; s++) {
       let hit = false;
-      for (const f of fighting) if (f.think(DT, t, ctx).length) hit = true;
+      for (const f of fighting) {
+        for (const h of f.think(DT, t, ctx)) {
+          hit = true;
+          const w = { f: h.target, t0: t, y0: h.target.ragdoll.pos().y, peak: 0, air: 0, special: !!h.special, launch: h.launch, rose: false };
+          w.peak = w.y0;
+          watching.push(w);
+          launches.push(w);
+        }
+        for (const c of f.takeCues()) if (c.phase === 'charge') specials[f.id]++;
+      }
       world.step();
       t = (s + 1) * DT;
+      fightSeconds += fighting.length * DT;
       if (hit) lastHit = t;
       longestQuiet = Math.max(longestQuiet, t - lastHit);
+      watch(watching, t);
 
       const outs = fighting.filter((f) => isOut(f.ragdoll.pos(), tune.ringRadius));
       if (!outs.length) continue;
       for (const f of outs) {
         ringOuts.push({ id: f.id, t });
         f.state = 'out';
+        // its flight ends where it fell out
+        for (const w of watching) if (w.f === f && w.air === 0) w.air = w.rose ? t - w.t0 : 0;
+        for (let i = watching.length - 1; i >= 0; i--) if (watching[i].f === f) watching.splice(i, 1);
         f.dispose();
       }
       fighting = fighting.filter((f) => !outs.includes(f));
@@ -99,9 +134,27 @@ export function simulateBout(kinds: string[], o: { seconds: number; seed: number
       hits: Object.fromEntries(fs.map((f) => [f.id, f.hits])),
       end: timedOut ? o.seconds : (ringOuts.at(-1)?.t ?? 0),
       timedOut,
+      launches: launches.map(({ peak, air, special, launch }) => ({ peak, air, special, launch })),
+      specials,
+      fightSeconds,
     };
   } finally {
     world.free();
+  }
+}
+
+/** Follows each watched flight one step: its peak, and when it came back down; drops it after `WATCH_S`. */
+function watch(ws: (Launch & { f: Fighter; t0: number; y0: number; rose: boolean })[], t: number): void {
+  for (let i = ws.length - 1; i >= 0; i--) {
+    const w = ws[i], y = w.f.ragdoll.pos().y, age = t - w.t0;
+    w.peak = Math.max(w.peak, y);
+    if (y > w.y0 + ROSE) w.rose = true;
+    const down = w.rose && y <= w.y0;
+    if (down) w.air = age;
+    if (down || age >= WATCH_S) {
+      if (!down) w.air = w.rose ? age : 0;
+      ws.splice(i, 1);
+    }
   }
 }
 
@@ -128,7 +181,18 @@ export type FourWayReport = {
   timedOut: number;
   /** Per kind: bouts it took part in, bouts it won, and wins ÷ bouts. */
   kinds: Record<string, { bouts: number; wins: number; winRate: number }>;
+  /** Normal (not special) landed hits: the median peak torso height (m above the ring top) of their targets. */
+  medianPeak: number;
+  /** Share of normal landed hits whose target's torso peaked at 1.5 m or higher. */
+  highShare: number;
+  /** Median air time (s) of normal landed hits that launched their target (rose at all). */
+  medianAir: number;
+  /** Specials each fighter performs per 45 s of fighting, on average. */
+  specialsPer45: number;
 };
+
+/** A torso peaking this high (m above the ring top) after a hit is a high launch. */
+export const HIGH_LAUNCH = 1.5;
 
 const median = (xs: number[]) => {
   const s = xs.slice().sort((a, b) => a - b), m = s.length >> 1;
@@ -166,6 +230,10 @@ export function fourWayReport(n: number, o: { seconds?: number; seed?: number; t
     if (r.winner) kinds[kindOf(r.winner)].wins++;
   });
   for (const k of BODY_KINDS) kinds[k].winRate = kinds[k].bouts ? kinds[k].wins / kinds[k].bouts : 0;
+  const normal = bouts.flatMap((r) => r.launches.filter((l) => !l.special));
+  const flew = normal.filter((l) => l.air > 0);
+  const specials = bouts.reduce((n, r) => n + Object.values(r.specials).reduce((a, b) => a + b, 0), 0);
+  const fightSeconds = bouts.reduce((n, r) => n + r.fightSeconds, 0);
   return {
     bouts, cast,
     medianFirstOut: median(bouts.map((r) => r.ringOuts[0]?.t ?? seconds)),
@@ -174,5 +242,9 @@ export function fourWayReport(n: number, o: { seconds?: number; seed?: number; t
     quietOver3: bouts.filter((r) => r.longestQuiet > 3).length,
     timedOut: bouts.filter((r) => r.timedOut).length,
     kinds,
+    medianPeak: normal.length ? median(normal.map((l) => l.peak)) : 0,
+    highShare: normal.length ? normal.filter((l) => l.peak >= HIGH_LAUNCH).length / normal.length : 0,
+    medianAir: flew.length ? median(flew.map((l) => l.air)) : 0,
+    specialsPer45: fightSeconds > 0 ? (45 * specials) / fightSeconds : 0,
   };
 }

@@ -183,6 +183,75 @@ describe('Announcer', () => {
     expect(s.calls).toEqual(['roll 1', 'sting', 'roar']);
   });
 
+  describe('a special', () => {
+    const slots = { name: 'Pip', special: 'MEGA PUNCH' };
+
+    it('puts its name up as the banner title over a special line, shouting the special', () => {
+      const s = setup();
+      const r = s.a.say('special', slots, { title: 'MEGA PUNCH!' });
+      expect(s.shown.at(-1)!.title).toBe('MEGA PUNCH!');
+      expect(r.text).toContain('MEGA PUNCH');
+      expect(LINES.special.some((l) => l.replace('{name}', 'PIP').replace('{special}', 'MEGA PUNCH') === r.text)).toBe(true);
+    });
+
+    it('is a priority beat: it cuts chatter off and chatter cannot talk over it', () => {
+      const s = setup({ ready: () => true });
+      s.at(0);
+      s.a.say('hit', { name: 'A', other: 'B' });
+      s.at(1);
+      expect(s.a.say('special', slots).spoken).toBe(true);
+      expect(s.v.voice.stop).toHaveBeenCalled();
+      s.at(8);
+      expect(s.a.say('hit', { name: 'A', other: 'B' }).text).toBe(''); // the special line is still being spoken
+    });
+
+    it('never interrupts an intro, spoken or words only, but follows once it is over', () => {
+      for (const ready of [true, false]) {
+        const s = setup({ ready: () => ready, seconds: 4 });
+        s.at(0);
+        s.a.say('intro', { name: 'Sir Bounces', maker: 'Pickle' });
+        s.runLater();
+        s.at(2);
+        expect(s.a.say('special', slots).text).toBe('');
+        expect(s.shown).toHaveLength(1);
+        if (ready) s.v.finish();
+        s.at(11);
+        expect(s.a.say('special', slots).text).not.toBe('');
+      }
+    });
+
+    it('a group intro holds it off too, and so does a ring-out line still up, until it is over', () => {
+      const s = setup();
+      s.at(0);
+      s.a.say('groupIntro', { names: 'A and B' });
+      s.at(1);
+      expect(s.a.say('special', slots).text).toBe('');
+      s.a.say('ringOut', { other: 'A' });
+      s.at(1.5);
+      expect(s.a.say('special', slots).text).toBe(''); // never cuts "A IS OUT!" off
+      s.at(30);
+      expect(s.a.say('special', slots).text).not.toBe('');
+    });
+
+    it('never cuts another special off mid-line', () => {
+      const s = setup({ ready: () => true });
+      s.at(0);
+      expect(s.a.say('special', slots).spoken).toBe(true);
+      s.at(1);
+      expect(s.a.say('special', slots).text).toBe('');
+      expect(s.v.voice.stop).toHaveBeenCalledTimes(1);
+    });
+
+    it('warms its lines with the exact words it says', () => {
+      const ready = new Set<string>();
+      const s = setup({ ready: (t) => ready.has(t) });
+      s.a.warm('special', slots, 1);
+      const [warmed] = s.v.voice.prefetch.mock.calls.map((c) => c[0] as string);
+      ready.add(warmed);
+      expect(s.a.say('special', slots).text).toBe(warmed);
+    });
+  });
+
   it('a tie gets the crowd aww', () => {
     const s = setup();
     s.a.say('tie', {});
